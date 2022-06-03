@@ -1,0 +1,20 @@
+# -*- coding: utf8 -*-
+
+from typing import Dict
+from typing import Hashable
+from typing import Sequence
+from typing import Tuple
+from typing import Union
+
+import jax.numpy as jnp
+
+
+Tensor = Union[jnp.ndarray, jnp.DeviceArray]
+PyTree = Union
+[
+    Tensor,
+    Tuple["PyTree", ...],
+    Sequence["PyTree"],
+    Dict[Hashable, "PyTree"],
+    None
+]
