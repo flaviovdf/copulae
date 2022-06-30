@@ -24,6 +24,7 @@ def ecdf(data: Tensor) -> PyTree:
     >>> asort = data.argsort()
     >>> x_plot = data[asort]
     >>> y_plot = data[asort]
+    >>> # from here you can plot x and y
 
     Arguments
     ---------

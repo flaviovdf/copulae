@@ -1,7 +1,8 @@
 # -*- coding: utf8 -*-
 '''Unit tests for the utilities module'''
 
-from ..utils import ecdf
+
+from copulae.utils import ecdf
 
 from statsmodels.distributions.empirical_distribution \
     import ECDF
