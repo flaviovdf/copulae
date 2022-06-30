@@ -27,7 +27,7 @@ def test_pdf_silverman():
 
     bw = silvermans_method(data.shape[0], 1)
     y = kde_pdf(data, bw)
-    assert_almost_equal(y_ss, y)
+    assert_almost_equal(y_ss, y, 0.01)
 
 
 def test_pdf_scotts():
@@ -40,7 +40,7 @@ def test_pdf_scotts():
 
     bw = scotts_method(data.shape[0], 1)
     y = kde_pdf(data, bw)
-    assert_almost_equal(y_ss, y)
+    assert_almost_equal(y_ss, y, 0.01)
 
 
 def test_cdf_silverman():
