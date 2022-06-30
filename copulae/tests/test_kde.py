@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 '''Unit tests for our kde estimates'''
 
+
 from copulae.kde import scotts_method
 from copulae.kde import silvermans_method
 from copulae.kde import kde_cdf
@@ -10,6 +11,8 @@ from numpy.testing import assert_almost_equal
 
 
 import jax
+
+import numpy as np
 
 import scipy.stats as ss
 
@@ -46,7 +49,10 @@ def test_cdf_silverman():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='silverman')
-    y_ss = kde_ss.cdf(data)
+    cdf_f = np.vectorize(
+        lambda x: kde_ss.integrate_box_1d(-np.inf, data)
+    )
+    y_ss = cdf_f(data)
 
     bw = silvermans_method(data.shape[0], 1)
     y = kde_cdf(data, bw)
@@ -59,7 +65,10 @@ def test_cdf_scotts():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='scott')
-    y_ss = kde_ss.cdf(data)
+    cdf_f = np.vectorize(
+        lambda x: kde_ss.integrate_box_1d(-np.inf, data)
+    )
+    y_ss = cdf_f(data)
 
     bw = scotts_method(data.shape[0], 1)
     y = kde_cdf(data, bw)
