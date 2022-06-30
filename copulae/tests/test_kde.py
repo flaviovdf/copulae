@@ -20,11 +20,10 @@ def test_pdf_silverman():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='silverman')
+    y_ss = kde_ss.pdf(data)
 
     bw = silvermans_method(data.shape[0], 1)
-    y_ss = kde_ss.pdf(data, bw)
-
-    y = kde_pdf(data)
+    y = kde_pdf(data, bw)
     assert_almost_equal(y_ss, y)
 
 
@@ -34,11 +33,10 @@ def test_pdf_scotts():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='scott')
+    y_ss = kde_ss.pdf(data)
 
     bw = scotts_method(data.shape[0], 1)
-    y_ss = kde_ss.pdf(data, bw)
-
-    y = kde_pdf(data)
+    y = kde_pdf(data, bw)
     assert_almost_equal(y_ss, y)
 
 
@@ -48,11 +46,10 @@ def test_cdf_silverman():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='silverman')
+    y_ss = kde_ss.cdf(data)
 
     bw = silvermans_method(data.shape[0], 1)
-    y_ss = kde_ss.cdf(data, bw)
-
-    y = kde_cdf(data)
+    y = kde_cdf(data, bw)
     assert_almost_equal(y_ss, y)
 
 
@@ -62,9 +59,8 @@ def test_cdf_scotts():
     data = jax.random.normal(key, shape=(100, ))
 
     kde_ss = ss.gaussian_kde(data, bw_method='scott')
+    y_ss = kde_ss.cdf(data)
 
     bw = scotts_method(data.shape[0], 1)
-    y_ss = kde_ss.cdf(data, bw)
-
-    y = kde_cdf(data)
+    y = kde_cdf(data, bw)
     assert_almost_equal(y_ss, y)
