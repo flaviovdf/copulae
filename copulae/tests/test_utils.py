@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+'''Unit tests for the utilities module'''
 
 from ..utils import ecdf
 
