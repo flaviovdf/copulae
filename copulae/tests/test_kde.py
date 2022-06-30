@@ -7,12 +7,12 @@ from copulae.kde import silvermans_method
 from copulae.kde import kde_cdf
 from copulae.kde import kde_pdf
 
+from statsmodels.distributions.empirical_distribution import ECDF
+
 from numpy.testing import assert_almost_equal
 
 
 import jax
-
-import numpy as np
 
 import scipy.stats as ss
 
@@ -48,15 +48,12 @@ def test_cdf_silverman():
     _, key = jax.random.split(key)
     data = jax.random.normal(key, shape=(100, ))
 
-    kde_ss = ss.gaussian_kde(data, bw_method='silverman')
-    cdf_f = np.vectorize(
-        lambda x: kde_ss.integrate_box_1d(-np.inf, data)
-    )
-    y_ss = cdf_f(data)
+    ecdf = ECDF(data)
+    y_ss = ecdf(data)
 
     bw = silvermans_method(data.shape[0], 1)
     y = kde_cdf(data, bw)
-    assert_almost_equal(y_ss, y)
+    assert_almost_equal(y_ss, y, 0.01)
 
 
 def test_cdf_scotts():
@@ -64,12 +61,9 @@ def test_cdf_scotts():
     _, key = jax.random.split(key)
     data = jax.random.normal(key, shape=(100, ))
 
-    kde_ss = ss.gaussian_kde(data, bw_method='scott')
-    cdf_f = np.vectorize(
-        lambda x: kde_ss.integrate_box_1d(-np.inf, data)
-    )
-    y_ss = cdf_f(data)
+    ecdf = ECDF(data)
+    y_ss = ecdf(data)
 
     bw = scotts_method(data.shape[0], 1)
     y = kde_cdf(data, bw)
-    assert_almost_equal(y_ss, y)
+    assert_almost_equal(y_ss, y, 0.01)
