@@ -1,4 +1,10 @@
 # -*- coding: utf8 -*-
+'''
+1-D Gaussian Kernel Density Estimators
+
+Employs code from
+[jaxkern](https://github.com/IPL-UV/jaxkern).
+'''
 
 
 import jax
@@ -7,11 +13,19 @@ import jax.numpy as jnp
 
 @jax.jit
 def scotts_method(n: int, d: int) -> float:
+    '''
+    Bandwidth estimator based on number of data points (n)
+    and dimensions (d).
+    '''
     return jnp.power(n, -1./(d+4))
 
 
 @jax.jit
 def silvermans_method(n: int, d: int) -> float:
+    '''
+    Bandwidth estimator based on number of data points (n)
+    and dimensions (d).
+    '''
     return jnp.power(n*(d+2.0)/4.0, -1./(d+4))
 
 
@@ -20,6 +34,41 @@ def kde_pdf(
     x: jnp.array,
     bandwidth: float
 ) -> jnp.array:
+    '''
+    Computes a Gaussian KDE estimate of the probability
+    density function (pdf) for the given dataset.
+
+    Arguments
+    ---------
+    x: array like
+        data to compute the pdf.
+    bandwidth: float
+        size of the bandwidth. For better results, make use
+        of Scott's or Silverman's method which are provided
+        with this module.
+
+    Returns
+    -------
+    An array with the density of each x[i]. That is,
+    pdf(x[i]).
+
+    Examples
+    --------
+
+    >>> from copulae.kde import scotts_method
+    >>> from copulae.kde import kde_pdf
+    >>>
+    >>> import jax
+    >>>
+    >>> _, key = jax.random.split(key)
+    >>> key = jax.random.PRNGKey(30091985)
+    >>>
+    >>> data = jax.random.normal(key, shape=(100, ))
+    >>>
+    >>> # number of points and number of dimensions
+    >>> bw = scotts_method(data.shape[0], 1)
+    >>> pdf_data = kde_pdf(data, bw)
+    '''
     # distances (use broadcasting)
     rescaled_x = (x - x[:, jnp.newaxis]) / bandwidth
 
@@ -36,6 +85,42 @@ def kde_cdf(
     x: jnp.ndarray,
     bandwidth: float
 ) -> jnp.ndarray:
+    '''
+    Computes a Gaussian KDE estimate of the cumulative
+    density function (cdf) for the given dataset.
+
+    Arguments
+    ---------
+    x: array like
+        data to compute the cdf.
+    bandwidth: float
+        size of the bandwidth. For better results, make use
+        of Scott's or Silverman's method which are provided
+        with this module.
+
+    Returns
+    -------
+    An array with the density of each x[i]. That is,
+    cdf(x[i]).
+
+    Examples
+    --------
+
+    >>> from copulae.kde import scotts_method
+    >>> from copulae.kde import kde_cdf
+    >>>
+    >>> import jax
+    >>>
+    >>> _, key = jax.random.split(key)
+    >>> key = jax.random.PRNGKey(30091985)
+    >>>
+    >>> data = jax.random.normal(key, shape=(100, ))
+    >>>
+    >>> # number of points and number of dimensions
+    >>> bw = scotts_method(data.shape[0], 1)
+    >>> pdf_data = kde_cdf(data, bw)
+    '''
+
     n_samples = x.shape[0]
 
     # normalize samples
