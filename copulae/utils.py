@@ -37,8 +37,7 @@ def ecdf(data: Tensor) -> PyTree:
     y: Tensor (1 dimensional jnp.array)
         the ecdf estimate for give datapoints
     '''
-    xs = jnp.asanyarray(data, copy=True)
-    xs.sort()
+    xs = jnp.sort(data)
     n = xs.shape[0]
     y = (jnp.searchsorted(xs, data, side="right") - 1) / n
     return y
