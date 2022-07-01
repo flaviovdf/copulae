@@ -14,7 +14,7 @@ import jax.scipy.stats as jss
 def test_gausscopula():
     rho = 0
     mean = jnp.zeros(2)
-    mean[1] = 2
+    mean.at[1].set(2)
 
     E = jnp.zeros(shape=(2, 2)) + rho
     E = E.at[0, 0].set(1)
