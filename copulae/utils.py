@@ -1,8 +1,9 @@
 # -*- coding: utf8 -*-
+'''Small utilities with no other home'''
 
 
-from .typing import Tensor
-from .typing import PyTree
+from copulae.typing import Tensor
+from copulae.typing import PyTree
 
 import jax
 import jax.numpy as jnp
@@ -36,9 +37,10 @@ def ecdf(data: Tensor) -> PyTree:
     y: Tensor (1 dimensional jnp.array)
         the ecdf estimate for give datapoints
     '''
-    xs = jnp.sort(data)
-    n = data.shape[0]
-    y = (jnp.searchsorted(xs, data, side="right") + 1) / n
+    xs = jnp.asanyarray(data, copy=True)
+    xs.sort()
+    n = xs.shape[0]
+    y = (jnp.searchsorted(xs, data, side="right") - 1) / n
     return y
 
 
