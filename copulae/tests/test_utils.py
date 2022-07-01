@@ -4,7 +4,7 @@
 
 from copulae.utils import gauss_copula
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_almost_equal
 
 
 import jax.numpy as jnp
@@ -27,5 +27,5 @@ def test_gausscopula():
     cdf2 = jss.norm.cdf(x2, loc=2, scale=1)
 
     u = jnp.array([0.25, 0.5])
-    assert_array_equal(cdf1 * cdf2,
-                       gauss_copula(u, mean, E))
+    assert_array_almost_equal(cdf1 * cdf2,
+                              gauss_copula(u, mean, E))
