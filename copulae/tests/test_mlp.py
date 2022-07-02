@@ -18,7 +18,7 @@ def test_init_mlp():
     weights, bias = params[0]
     assert((weights != 0).any())
     assert(weights.shape[0] == 8)
-    assert(weights.shape[1] == 3)
+    assert(weights.shape[1] == 2)
     assert((bias == 1).all())
 
     for weights, bias in params[1:-1]:
@@ -37,14 +37,14 @@ def test_init_mlp():
 
 def test_init_mlp_2():
     key = jax.random.PRNGKey(30091985)
-    new_key, params = init_mlp(key, 2, 2, 4, 0)
+    new_key, params = init_mlp(key, 3, 2, 4, 0)
     assert_equal(3, len(params))
 
     weights, bias = params[0]
     assert((weights != 0).any())
     assert(weights.shape[0] == 4)
-    assert(weights.shape[1] == 2)
-    assert((bias == 1).all())
+    assert(weights.shape[1] == 3)
+    assert((bias == 0).all())
 
     for weights, bias in params[1:-1]:
         assert((weights != 0).any())
