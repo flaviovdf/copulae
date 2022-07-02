@@ -12,7 +12,7 @@ import jax
 
 def test_init_mlp():
     key = jax.random.PRNGKey(30091985)
-    new_key, params = init_mlp(key, 2, 3, 8, 1)
+    _, params = init_mlp(key, 2, 3, 8, 1)
     assert_equal(4, len(params))
 
     weights, bias = params[0]
@@ -32,12 +32,11 @@ def test_init_mlp():
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 8)
     assert((bias == 1).all())
-
-    assert(new_key != key)
+    
 
 def test_init_mlp_2():
     key = jax.random.PRNGKey(30091985)
-    new_key, params = init_mlp(key, 3, 2, 4, 0)
+    _, params = init_mlp(key, 3, 2, 4, 0)
     assert_equal(3, len(params))
 
     weights, bias = params[0]
@@ -57,5 +56,3 @@ def test_init_mlp_2():
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 4)
     assert((bias == 0).all())
-
-    assert(new_key != key)
