@@ -1,86 +1,75 @@
 # -*- coding: utf8 -*-
 
 
-from .typing import Tensor
-from .typing import PyTree
+from copulae.mlp import mlp
+
+from copulae.typing import Tensor
+from copulae.typing import Tuple
+from copulae.typing import PyTree
 
 import jax
 import jax.numpy as jnp
 
 
+
 @jax.jit
-def C(params: PyTree, U: Tensor) -> Tensor:
+def C(
+    params: PyTree,
+    U: Tensor
+) -> Tensor:
 
-    a = jnp.clip(U, 0, 1)  # map input to [0, 1]
-    for W, b in params[:-1]:
-        z = jnp.dot(W, a) + b
-        a = jax.nn.swish(z)
-
-    W, b = params[-1]
-    z = jnp.dot(W, a) + b
-    return jax.nn.sigmoid(z).T
+    U = jnp.clip(U, 0, 1)  # map input to [0, 1]
+    return mlp(params, U, jax.nn.swish, jax.nn.sigmoid)
 
 
 batched_C = jax.vmap(C, in_axes=(None, 0), out_axes=0)
 
 
 @jax.jit
-def partial_c(params: PyTree, U: Tensor) -> Tensor:
+def partial_c(
+    params: PyTree,
+    U: Tensor
+) -> Tensor:
     def j(params, u):
         u = jnp.atleast_2d(u).T
-        jacobian = jax.jacobian(C, argnums=1)(params, u).squeeze((1, -1)).T
+        jacobian = jax.jacobian(
+            C,
+            argnums=1)(
+                params,
+                u
+            ).squeeze((1, -1)).T
         return jacobian
-
     return jax.vmap(j, in_axes=(None, 1))(params, U)
 
 
-batched_partial_c = jax.vmap(partial_c, in_axes=(None, 0), out_axes=0)
+batched_partial_c = jax.vmap(
+    partial_c,
+    in_axes=(None, 0),
+    out_axes=0
+)
 
 
 @jax.jit
-def c(params: PyTree, U: Tensor) -> Tensor:
+def c(
+    params: PyTree,
+    U: Tensor
+) -> Tensor:
     def h(params, u):
-        hessian = jax.hessian(C, argnums=1)(params, jnp.atleast_2d(u).T).ravel()[-2]
+        hessian = jax.hessian(
+            C,
+            argnums=1)(
+                params,
+                jnp.atleast_2d(u).T
+            ).ravel()[-2]
         return hessian
-
     return jax.vmap(h, in_axes=(None, 1))(params, U)
 
 
-batched_c = jax.vmap(c, in_axes=(None, 0), out_axes=0)
-
-
-@jax.jit
-def pdf(params: PyTree, X: Tensor) -> Tensor:
-
-    ecdf_0_x, ecdf_0_y = ecdf(X[0])
-    ecdf_1_x, ecdf_1_y = ecdf(X[1])
-
-    def F0(data):
-        return jnp.interp(data, ecdf_0_x, ecdf_0_y)
-
-    def F1(data):
-        return jnp.interp(data, ecdf_1_x, ecdf_1_y)
-
-    def _C(x):
-        u = jnp.array([[F0(x[0, 0]), F0(x[1, 0])]]).T
-        return C(params, u)
-
-    def h(params, x):
-        return jax.hessian(_C)(jnp.atleast_2d(x).T).ravel()[-2]
-
-    p = jax.vmap(h, in_axes=(None, 1))(params, X)
-    p = jnp.nan_to_num(p, 0)
-    return jnp.clip(p, 1e-6)
-
-
-batched_pdf = jax.vmap(pdf, in_axes=(None, 0), out_axes=0)
-
-
-@jax.jit
-def cross_entropy(Y: Tensor, logits: Tensor) -> Tensor:
-    logit = jnp.clip(logits, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(Y, 0, 1)
-    return jnp.mean(-Y * jnp.log(logit) - (1 - Y) * jnp.log(1 - logit))
+batched_c = jax.vmap(
+    c,
+    in_axes=(None, 0),
+    out_axes=0
+)
 
 
 @jax.jit
@@ -94,7 +83,7 @@ def C_forward(
     beta: float,
     gamma: float,
     omega: float,
-    tau: float,
+    tau: float
 ) -> Tensor:
 
     # 1. Basic loss on empirical cdf
@@ -106,7 +95,12 @@ def C_forward(
     loss += -(jnp.log(data_lhood).mean()) * alpha
 
     # 3. L2 Regularization
-    loss += jnp.array(jax.tree_map(lambda p: (p**2).sum(), params)).sum() * beta
+    loss += jnp.array(
+        jax.tree_map(
+            lambda p: (p ** 2).sum(),
+            params
+        )
+    ).sum() * beta
 
     # 4. Frechet bounds loss
     #    L: max(u + v - 1, 0)

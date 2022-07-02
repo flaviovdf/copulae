@@ -1,7 +1,10 @@
 # -*- coding: utf8 -*-
 '''
 Code regarding multi layer perceptrons, mostly network
-initialization and definition
+initialization, definition and loss functions.
+
+Written from scratch instead of using Flax as to have
+more control over experiments and architectures.
 '''
 
 
@@ -83,3 +86,33 @@ def init_mlp(
     params.append((weights, b))
 
     return new_key, params
+
+
+@jax.jit
+def mlp(
+    params: PyTree,
+    X: Tensor,
+    middle_activation: Callable = jax.nn.swish,
+    end_activation: Callable = jax.nn.sigmoid
+) -> Tensor:
+
+    a = X
+    for W, b in params[:-1]:
+        z = jnp.dot(W, a) + b
+        a = middle_activation(z)
+
+    W, b = params[-1]
+    z = jnp.dot(W, a) + b
+    return end_activation(z).T
+
+
+@jax.jit
+def cross_entropy(
+    Y: Tensor,
+    logits: Tensor
+) -> Tensor:
+    logit = jnp.clip(logits, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(Y, 0, 1)
+    return jnp.mean(
+        -Y * jnp.log(logit) - (1 - Y) * jnp.log(1 - logit)
+    )

@@ -1,5 +1,8 @@
 # -*- coding: utf8 -*-
+'''Simple typing aliases'''
 
+
+from typing import Callable
 from typing import Dict
 from typing import Hashable
 from typing import Sequence
