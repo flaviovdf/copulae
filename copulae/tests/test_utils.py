@@ -16,9 +16,9 @@ def test_gausscopula():
     mean = jnp.zeros(2)
     mean.at[1].set(2)
 
-    E = jnp.zeros(shape=(2, 2)) + rho
-    E = E.at[0, 0].set(1)
-    E = E.at[1, 1].set(1)
+    cov = jnp.zeros(shape=(2, 2)) + rho
+    cov = cov.at[0, 0].set(1)
+    cov = cov.at[1, 1].set(1)
 
     x1 = jss.norm.ppf(0.25, loc=0, scale=1)
     x2 = jss.norm.ppf(0.5, loc=2, scale=1)
@@ -28,4 +28,4 @@ def test_gausscopula():
 
     u = jnp.array([0.25, 0.5])
     assert_array_almost_equal(cdf1 * cdf2,
-                              gauss_copula(u, mean, E))
+                              gauss_copula(u, mean, cov))

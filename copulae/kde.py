@@ -118,7 +118,7 @@ def kde_cdf(
     >>>
     >>> # number of points and number of dimensions
     >>> bw = scotts_method(data.shape[0], 1)
-    >>> pdf_data = kde_cdf(data, bw)
+    >>> cdf_data = kde_cdf(data, bw)
     '''
 
     n_samples = x.shape[0]
