@@ -1,0 +1,8 @@
+[flake8]
+ignore =
+    N803  # Naming upper/lowercase -- too hard right now.
+    N806  # Naming upper/lowercase -- too hard right now.
+    N802  # Naming upper/lowercase -- too hard right now.
+max-line-length = 59
+max-complexity = 21
+docstring-convention=numpy

@@ -8,7 +8,10 @@ more control over experiments and architectures.
 '''
 
 
+from copulae.typing import Callable
+from copulae.typing import Tensor
 from copulae.typing import PyTree
+
 
 import jax
 import jax.numpy as jnp
@@ -95,7 +98,41 @@ def mlp(
     middle_activation: Callable = jax.nn.swish,
     end_activation: Callable = jax.nn.sigmoid
 ) -> Tensor:
+    '''
+    Feed-forward for a simple multi-layer neural network.
+    The parameters of the network should be initialized
+    using the `init_mlp` function. `X` is the input
+    of the network.
 
+    In order to create valid copulas, the `end_activation`
+    must output a number in [0, 1]. By default, we make
+    use of a sigmoid.
+
+    Parameters
+    ----------
+    params: PyTree
+        The parameters of the network. If `X` has 
+        `n_dimensions` (features), then you must
+        initialize parameters as:
+        >>> n_dimensions = X.shape[0]
+        >>> key, params = init_mlp(key, n_dimensions, ...)
+    X: Tensor (2d)
+        A matrix of shape: (n_dimensions, n_examples). Note
+        that this is different from your common numpy data
+        matrix where rows are examples. Here, examples are
+        columns.
+    middle_activation: Callable
+        The activation functions for the middle layers of
+        the network. Default's to `jax.nn.swish`.
+    end_activation: Callable
+        The activation functions for the final layer of
+        the networks. Default's to `jax.nn.sigmoid`.
+
+    Returns
+    -------
+    A column vector with `n_examples` entries. These are
+    the activations for example in `X`.
+    '''
     a = X
     for W, b in params[:-1]:
         z = jnp.dot(W, a) + b
@@ -104,15 +141,3 @@ def mlp(
     W, b = params[-1]
     z = jnp.dot(W, a) + b
     return end_activation(z).T
-
-
-@jax.jit
-def cross_entropy(
-    Y: Tensor,
-    logits: Tensor
-) -> Tensor:
-    logit = jnp.clip(logits, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(Y, 0, 1)
-    return jnp.mean(
-        -Y * jnp.log(logit) - (1 - Y) * jnp.log(1 - logit)
-    )

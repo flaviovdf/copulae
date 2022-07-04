@@ -3,11 +3,13 @@
 
 
 from copulae.mlp import init_mlp
+from copulae.mlp import mlp
 
 from numpy.testing import assert_equal
 
 
 import jax
+import jax.numpy as jnp
 
 
 def test_init_mlp():
@@ -32,7 +34,7 @@ def test_init_mlp():
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 8)
     assert((bias == 1).all())
-    
+
 
 def test_init_mlp_2():
     key = jax.random.PRNGKey(30091985)
@@ -56,3 +58,34 @@ def test_init_mlp_2():
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 4)
     assert((bias == 0).all())
+
+
+def test_mlp_1():
+    key = jax.random.PRNGKey(30091985)
+    X = jnp.array([[1, 2, 3],
+                   [7, 8, 9]], dtype=jnp.float32)
+    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
+    output = mlp(params, X, end_activation=jax.nn.sigmoid)
+    assert((output <= 1).all())
+    assert((output >= 0).all())
+
+
+def test_mlp_2():
+    key = jax.random.PRNGKey(30091985)
+    X = jnp.array([[1, 2, 3],
+                   [7, 8, 9]], dtype=jnp.float32)
+    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
+    output = mlp(params, X,
+                 middle_activation=jax.nn.linear,end_activation=jax.nn.sigmoid)
+    assert((output <= 1).all())
+    assert((output >= 0).all())
+
+
+def test_mlp_3():
+    key = jax.random.PRNGKey(30091985)
+    X = jnp.array([[1, 2, 3],
+                   [7, 8, 9]], dtype=jnp.float32)
+    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
+    output = mlp(params, X,
+                 middle_activation=jax.nn.sigmoid,end_activation=jax.nn.relu)
+    assert((output >= 0).all())
