@@ -50,9 +50,9 @@ def test_step_function_repeated_values():
     f = StepFunction(x, y)
 
     assert_almost_equal(
-        f([1, 2, 3, 4, 5]), [0, 7, 10, 13, 14]
+        f(jnp.array([1, 2, 3, 4, 5])), [0, 7, 10, 13, 14]
     )
     f2 = StepFunction(x, y, side='right')
     assert_almost_equal(
-        f2([1, 2, 3, 4, 5]), [7, 10, 13, 14, 15]
+        f2(jnp.array([1, 2, 3, 4, 5])), [7, 10, 13, 14, 15]
     )
