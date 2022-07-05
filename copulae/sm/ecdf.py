@@ -80,6 +80,7 @@ class StepFunction(object):
         self.n = self.x.shape[0]
 
     def __call__(self, time):
+        time = jnp.asarray(time)
         ind = jnp.searchsorted(self.x, time, self.side) - 1
         return self.y[ind]
 
@@ -111,9 +112,9 @@ class ECDF(StepFunction):
     array([ 0.75,  1.  ,  0.  ,  0.25])
     '''
     def __init__(self, x, side='right'):
-        x = jnp.array(x)
+        x = jnp.asarray(x)
         x.sort()
-        nobs = x.shape[0]
+        nobs = len(x)
         y = jnp.linspace(1.0 / nobs, 1, nobs)
         super(ECDF, self).__init__(
             x, y, side=side, sorted=True

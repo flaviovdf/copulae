@@ -67,6 +67,7 @@ def test_ecdf():
     key = jax.random.PRNGKey(30091985)
     _, key = jax.random.split(key)
     data = jax.random.normal(key, shape=(100, ))
+    print(data)
 
     ecdf = ECDF(data)
     ecdf_sm = smECDF(data)
