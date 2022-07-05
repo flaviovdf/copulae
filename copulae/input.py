@@ -70,6 +70,8 @@ def generate_copula_net_input(
             X_batches = \
                 X_batches.at[batch_i, j, :].set(vals_x)
 
+            print(jnp.tile(
+                D[j], batch_size).shape)
             lt = jnp.tile(
                 D[j], batch_size
             ).reshape(
