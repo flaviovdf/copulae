@@ -59,7 +59,11 @@ def generate_copula_net_input(
 
         mask = True
         for j, xy in enumerate(ecdfs):
-            pos = jnp.searchsorted(xy[1], Ub[j])
+            pos = jnp.searchsorted(
+                xy[1], Ub[j], side='right'
+            )
+            pos.at[pos <= 0].set(1)
+
             vals_m = xy[1][pos]
             M_batches = \
                 M_batches.at[batch_i, j, :].set(vals_m)
