@@ -65,27 +65,8 @@ def test_mlp_1():
     X = jnp.array([[1, 2, 3],
                    [7, 8, 9]], dtype=jnp.float32)
     _, params = init_mlp(key, X.shape[0], 8, 8, 1)
-    output = mlp(params, X, end_activation=jax.nn.sigmoid)
+    output = mlp(params, X)
     assert((output <= 1).all())
     assert((output >= 0).all())
-
-
-def test_mlp_2():
-    key = jax.random.PRNGKey(30091985)
-    X = jnp.array([[1, 2, 3],
-                   [7, 8, 9]], dtype=jnp.float32)
-    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
-    output = mlp(params, X,
-                 middle_activation=jax.nn.linear,end_activation=jax.nn.sigmoid)
-    assert((output <= 1).all())
-    assert((output >= 0).all())
-
-
-def test_mlp_3():
-    key = jax.random.PRNGKey(30091985)
-    X = jnp.array([[1, 2, 3],
-                   [7, 8, 9]], dtype=jnp.float32)
-    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
-    output = mlp(params, X,
-                 middle_activation=jax.nn.sigmoid,end_activation=jax.nn.relu)
-    assert((output >= 0).all())
+    assert(output.shape[0] == 3)
+    assert(output.shape[1] == 1)
