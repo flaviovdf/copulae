@@ -70,6 +70,7 @@ class StepFunction(object):
             msg = 'x and y must be 1-dimensional'
             raise ValueError(msg)
 
+        # NOTE: here, statsmodels make's use of -np.inf
         self.x = jnp.r_[_x.min() - 1e-6, _x]
         self.y = jnp.r_[ival, _y]
 
