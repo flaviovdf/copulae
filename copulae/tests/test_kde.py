@@ -7,7 +7,8 @@ from copulae.kde import silvermans_method
 from copulae.kde import kde_cdf
 from copulae.kde import kde_pdf
 
-from statsmodels.distributions.empirical_distribution import ECDF
+from statsmodels.distributions.empirical_distribution \
+    import ECDF
 
 from numpy.testing import assert_almost_equal
 

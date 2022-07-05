@@ -17,7 +17,7 @@ def scotts_method(n: int, d: int) -> float:
     Bandwidth estimator based on number of data points (n)
     and dimensions (d).
     '''
-    return jnp.power(n, -1./(d+4))
+    return jnp.power(n, -1.0 / (d + 4))
 
 
 @jax.jit
@@ -26,7 +26,7 @@ def silvermans_method(n: int, d: int) -> float:
     Bandwidth estimator based on number of data points (n)
     and dimensions (d).
     '''
-    return jnp.power(n*(d+2.0)/4.0, -1./(d+4))
+    return jnp.power(n * (d + 2.0) / 4.0, -1.0 / (d + 4))
 
 
 @jax.jit

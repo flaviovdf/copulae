@@ -1,77 +1,139 @@
 # -*- coding: utf8 -*-
+'''
+Code regarding multi layer perceptrons, mostly network
+initialization, definition and loss functions.
+
+Written from scratch instead of using Flax as to have
+more control over experiments and architectures.
+'''
 
 
-from .typing import Tensor
-from .typing import Tuple
+from copulae.typing import Tensor
+from copulae.typing import PyTree
 
-from .utils import ecdf
 
 import jax
 import jax.numpy as jnp
 
 
-def generate_copula_net_input(
+def init_mlp(
     key: jax.random.PRNGKey,
-    dataset: Tensor,
-    n_batches: int = 128,
-    batch_size: int = 64
-) -> Tuple[Tensor, Tensor]:
+    input_size: int,
+    n_layers: int,
+    layer_width: int,
+    b_init: int = 0
+) -> PyTree:
+    '''
+    Initializes the layers of a dense multilayer neural
+    network. Weights are initialized using a Lecun Normal
+    approach.
 
-    n_features = dataset.shape[1]
-    ecdfs = []
-    for j in range(n_features):
-        x, y = ecdf(dataset[:, j])
-        asort = x.argosort()
-        x = x[asort]
-        y = y[asort]
-        ecdfs.append((x, y))
+    Arguments
+    ---------
+    key: jax.random.PRNGKey
+        The key to use for random number generation
+    input_size: int
+        The size of the input to the network, this will
+        be the number of dimensions in the copula
+    n_layers: int
+        Number of layers in the networks
+    layer_width: int
+        The width of each layer
+    b_init: int
+        The initial value for the biases of each neural
+        (defaults do zero)
 
-    # U is used for the copula training
-    # M and X are the marginal CDFs used for regularization
-    U_batches = jnp.zeros(
-        shape=(n_batches, n_features, batch_size)
+    Returns
+    -------
+    key: jax.random.PRNGKey
+        A new random key, the one used as input must be
+        discarded
+    params: list
+        The parameters (weights, bias) for each layer of
+        the network
+    '''
+    initializer = jax.nn.initializers.lecun_normal()
+    params = []
+    new_key, *subkeys = jax.random.split(key, n_layers + 2)
+
+    weights = initializer(
+        subkeys[0],
+        (layer_width, input_size),
+        jnp.float32
     )
-    M_batches = jnp.zeros(
-        shape=(n_batches,   n_features, batch_size))
-    X_batches = jnp.zeros(
-        shape=(n_batches, n_features, batch_size))
-    Y_batches = jnp.zeros(
-        shape=(n_batches, batch_size, 1))
+    b = jnp.zeros(
+        shape=(layer_width, 1), dtype=jnp.float32
+    ) + b_init
+    params.append((weights, b))
 
-    for batch_i in range(n_batches):
-        key, subkey = jax.random.split(key)
-        Ub = jax.random.uniform(
-            subkey, shape=(n_features, batch_size), minval=-1.2, maxval=1.2
+    for i in range(1, n_layers):
+        weights = initializer(
+            subkeys[i],
+            (layer_width, layer_width),
+            jnp.float32
         )
+        b = jnp.zeros(
+            shape=(layer_width, 1), dtype=jnp.float32
+        ) + b_init
+        params.append((weights, b))
 
-        mask = True
-        for j, xy in enumerate(ecdfs):
-            pos = jnp.searchsorted(xy[1], Ub[j])
-            vals_m = xy[1][pos]
-            M_batches = M_batches.at[batch_i, j, :].set(vals_m)
+    weights = initializer(
+        subkeys[-1],
+        (1, layer_width),
+        jnp.float32
+    )
+    b = jnp.zeros(
+        shape=(1, 1), dtype=jnp.float32
+    ) + b_init
+    params.append((weights, b))
 
-            vals_x = xy[0][pos]
-            X_batches = X_batches.at[batch_i, j, :].set(vals_x)
-
-            lt = jnp.tile(D[:, j], batch_size).reshape(D.shape[0], batch_size) <= vals_x
-            mask = mask & lt
-
-        Yb = mask.mean(axis=0)
-        Yb = Yb.reshape(batch_size, 1)
-
-        U_batches = U_batches.at[batch_i].set(Ub)
-        Y_batches = Y_batches.at[batch_i].set(Yb)
-
-    return U_batches, M_batches, X_batches, Y_batches
+    return new_key, params
 
 
 @jax.jit
-def cross_entropy(
-    Y: Tensor,
-    logits: Tensor
+def mlp(
+    params: PyTree,
+    U: Tensor
 ) -> Tensor:
-    logit = jnp.clip(logits, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(Y, 0, 1)
-    return jnp.mean(
-        -Y * jnp.log(logit) - (1 - Y) * jnp.log(1 - logit)
-    )
+    '''
+    Feed-forward for a simple multi-layer neural network.
+    The parameters of the network should be initialized
+    using the `init_mlp` function. `U` is the input
+    of the network.
+
+    This network is the one that mimicks the copula. Thus,
+    every element in the input matrix `U` will be clipped
+    to the range [0, 1].
+
+    In order to create valid copulas, the final activation
+    must output a number in [0, 1]. By default, we make
+    use of a sigmoid. Middle activations are Swish
+    functions.
+
+    Parameters
+    ----------
+    params: PyTree
+        The parameters of the network. If `U` has
+        `n_dimensions` (features), then you must
+        initialize parameters as:
+        >>> n_dimensions = U.shape[0]
+        >>> key, params = init_mlp(key, n_dimensions, ...)
+    U: Tensor (2d)
+        A matrix of shape: (n_dimensions, n_examples). Note
+        that this is different from your common numpy data
+        matrix where rows are examples. Here, examples are
+        columns.
+
+    Returns
+    -------
+    A column vector with `n_examples` entries. These are
+    the activations for example in `X`.
+    '''
+    a = jnp.clip(U, 0, 1)  # map input to [0, 1]
+    for W, b in params[:-1]:
+        z = jnp.dot(W, a) + b
+        a = jax.nn.swish(z)
+
+    W, b = params[-1]
+    z = jnp.dot(W, a) + b
+    return jax.nn.sigmoid(z).T

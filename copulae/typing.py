@@ -12,6 +12,7 @@ from typing import Union
 import jax.numpy as jnp
 
 
+Callable = Callable
 Tensor = Union[jnp.ndarray, jnp.DeviceArray]
 PyTree = Union
 [
