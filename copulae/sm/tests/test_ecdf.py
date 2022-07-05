@@ -5,7 +5,6 @@ statsmodels tests
 '''
 
 
-from copulae.sm.ecdf import monotone_fn_inverter
 from copulae.sm.ecdf import StepFunction
 
 from numpy.testing import assert_raises
@@ -57,15 +56,3 @@ def test_step_function_repeated_values():
     assert_almost_equal(
         f2([1, 2, 3, 4, 5]), [7, 10, 13, 14, 15]
     )
-
-
-def test_monotone_fn_inverter():
-    x = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-
-    def fn(x):
-        return 1.0 / x
-
-    y = fn(jnp.array(x))
-    f = monotone_fn_inverter(fn, x)
-    assert_array_equal(f.y, x[::-1])
-    assert_array_equal(f.x, y[::-1])
