@@ -70,11 +70,11 @@ def generate_copula_net_input(
 
             print(jnp.tile(
                 D[j], batch_size).shape, D.shape,
-                D[j].shape, batch_size)
+                D[j].shape, batch_size, vals_x.shape)
             lt = jnp.tile(
                 D[j], batch_size
             ).reshape(
-                D.shape[0],
+                D.shape[1],
                 batch_size
             ) <= vals_x
             mask = mask & lt
