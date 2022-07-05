@@ -2,8 +2,8 @@
 '''Unit tests for our training module estimates'''
 
 
-from copulae.mlp import init_mlp
-from copulae.mlp import mlp
+from copulae.training import init_mlp
+from copulae.training import mlp
 
 from numpy.testing import assert_equal
 
