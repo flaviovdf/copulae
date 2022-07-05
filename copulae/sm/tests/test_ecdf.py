@@ -5,13 +5,18 @@ statsmodels tests
 '''
 
 
+from copulae.sm.ecdf import ECDF
 from copulae.sm.ecdf import StepFunction
 
 from numpy.testing import assert_raises
 from numpy.testing import assert_almost_equal
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_almost_equal
+
+from statsmodels.distributions.empirical_distribution \
+    import ECDF as smECDF
 
 
+import jax
 import jax.numpy as jnp
 
 
@@ -56,3 +61,16 @@ def test_step_function_repeated_values():
     assert_almost_equal(
         f2(jnp.array([1, 2, 3, 4, 5])), [7, 10, 13, 14, 15]
     )
+
+
+def test_ecdf():
+    key = jax.random.PRNGKey(30091985)
+    _, key = jax.random.split(key)
+    data = jax.random.normal(key, shape=(100, ))
+
+    ecdf = ECDF(data)
+    ecdf_sm = smECDF(data)
+
+    assert_array_almost_equal(ecdf_sm.x, ecdf.x)
+    assert_array_almost_equal(ecdf_sm.y, ecdf.y)
+    assert_array_almost_equal(ecdf_sm(data), ecdf(data))
