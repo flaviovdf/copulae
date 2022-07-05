@@ -62,7 +62,7 @@ def generate_copula_net_input(
             pos = jnp.searchsorted(xy[1], Ub[j])
             print(pos)
             print(xy[1].shape)
-            vals_m = xy[1].at[pos]
+            vals_m = xy[1][pos]
             M_batches = \
                 M_batches.at[batch_i, j, :].set(vals_m)
 
