@@ -37,8 +37,8 @@ def test_generate_copula_net_input_shapes():
     assert(X_batches.shape[2] == 8)
 
     assert(Y_batches.shape[0] == 16)
-    assert(Y_batches.shape[1] == ndim)
-    assert(Y_batches.shape[2] == 8)
+    assert(Y_batches.shape[1] == 8)
+    assert(Y_batches.shape[2] == 1)
 
 
 def test_generate_copula_net_input_values_1():
