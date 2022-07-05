@@ -112,8 +112,7 @@ class ECDF(StepFunction):
     array([ 0.75,  1.  ,  0.  ,  0.25])
     '''
     def __init__(self, x, side='right'):
-        x = jnp.asarray(x)
-        x.sort()
+        x = jnp.sort(x)
         nobs = len(x)
         y = jnp.linspace(1.0 / nobs, 1, nobs)
         super(ECDF, self).__init__(
