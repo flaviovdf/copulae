@@ -133,8 +133,8 @@ def mlp(
     a = jnp.clip(U, 0, 1)  # map input to [0, 1]
     for W, b in params[:-1]:
         z = jnp.dot(W, a) + b
-        a = middle_activation(z)
+        a = jax.nn.swish(z)
 
     W, b = params[-1]
     z = jnp.dot(W, a) + b
-    return end_activation(z).T
+    return jax.nn.sigmoid(z).T
