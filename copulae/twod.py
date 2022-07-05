@@ -4,12 +4,10 @@
 from copulae.mlp import mlp
 
 from copulae.typing import Tensor
-from copulae.typing import Tuple
 from copulae.typing import PyTree
 
 import jax
 import jax.numpy as jnp
-
 
 
 @jax.jit
