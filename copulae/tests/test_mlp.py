@@ -33,6 +33,8 @@ def test_init_mlp():
     assert((weights != 0).any())
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 8)
+    assert(bias.shape[0] == 1)
+    assert(bias.shape[1] == 1)
     assert((bias == 1).all())
 
 
@@ -57,6 +59,8 @@ def test_init_mlp_2():
     assert((weights != 0).any())
     assert(weights.shape[0] == 1)
     assert(weights.shape[1] == 4)
+    assert(bias.shape[0] == 1)
+    assert(bias.shape[1] == 1)
     assert((bias == 0).all())
 
 
