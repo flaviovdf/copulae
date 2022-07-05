@@ -44,7 +44,7 @@ class StepFunction(object):
     3.0
     >>> print(f([[3.2,4.5],[24,-3.1]]))
     [[  3.   4.]
-     [ 19.   0.]]
+     [ 19.   19.]]
     >>> f2 = StepFunction(x, y, side='right')
     >>>
     >>> print(f(3.0))
