@@ -131,13 +131,10 @@ def mlp(
     the activations for example in `X`.
     '''
     a = jnp.clip(U, 0, 1)  # map input to [0, 1]
-    print(a.shape)
     for W, b in params[:-1]:
         z = jnp.dot(W, a) + b
         a = jax.nn.swish(z)
-        print(a.shape)
 
     W, b = params[-1]
     z = jnp.dot(W, a) + b
-    print(z.shape)
     return jax.nn.sigmoid(z).T
