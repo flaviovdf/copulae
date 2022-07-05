@@ -84,7 +84,7 @@ def init_mlp(
         jnp.float32
     )
     b = jnp.zeros(
-        shape=(layer_width, 1), dtype=jnp.float32
+        shape=(1, 1), dtype=jnp.float32
     ) + b_init
     params.append((weights, b))
 
