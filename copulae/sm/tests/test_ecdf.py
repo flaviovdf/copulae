@@ -24,9 +24,9 @@ def test_step_function():
     x = jnp.arange(20)
     y = jnp.arange(20)
     f = StepFunction(x, y)
-    assert_almost_equal(
+    assert_array_almost_equal(
         f(jnp.array([[3.2, 4.5], [24, -3.1], [3.0, 4.0]])),
-        [[3, 4], [19, 0], [2, 3]]
+        jnp.array([[3.0, 4], [19, 0], [2, 3]])
     )
 
 
@@ -43,9 +43,9 @@ def test_step_function_value_side_right():
     x = jnp.arange(20)
     y = jnp.arange(20)
     f = StepFunction(x, y, side='right')
-    assert_almost_equal(
+    assert_array_almost_equal(
         f(jnp.array([[3.2, 4.5], [24, -3.1], [3.0, 4.0]])),
-        [[3, 4], [19, 0], [3, 4]]
+        jnp.array([[3.0, 4], [19, 0], [3, 4]])
     )
 
 
