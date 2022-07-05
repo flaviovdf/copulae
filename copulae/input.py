@@ -28,7 +28,9 @@ def generate_copula_net_input(
     ecdfs = []
     for j in range(n_features):
         ecdf = ECDF(D[j])
-        ecdfs.append((ecdf.x, ecdf.y))
+        ecdfs.append(
+            (jnp.array(ecdf.x), jnp.array(ecdf.y))
+        )
 
     # U is used for the copula training
     # M and X are the marginal CDFs used for regularization
