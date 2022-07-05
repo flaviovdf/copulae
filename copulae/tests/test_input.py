@@ -98,6 +98,7 @@ def test_generate_copula_net_input_values_2():
     assert((M_batches >= 0).all())
 
     assert((X_batches <= 3).all())
+    print(X_batches)
     assert((X_batches >= 2).all())
 
     assert((Y_batches <= 1).all())
