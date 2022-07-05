@@ -94,46 +94,43 @@ def init_mlp(
 @jax.jit
 def mlp(
     params: PyTree,
-    X: Tensor,
-    middle_activation: Callable = jax.nn.swish,
-    end_activation: Callable = jax.nn.sigmoid
+    U: Tensor
 ) -> Tensor:
     '''
     Feed-forward for a simple multi-layer neural network.
     The parameters of the network should be initialized
-    using the `init_mlp` function. `X` is the input
+    using the `init_mlp` function. `U` is the input
     of the network.
 
-    In order to create valid copulas, the `end_activation`
+    This network is the one that mimicks the copula. Thus,
+    every element in the input matrix `U` will be clipped
+    to the range [0, 1].
+
+    In order to create valid copulas, the final activation
     must output a number in [0, 1]. By default, we make
-    use of a sigmoid.
+    use of a sigmoid. Middle activations are Swish
+    functions.
 
     Parameters
     ----------
     params: PyTree
-        The parameters of the network. If `X` has 
+        The parameters of the network. If `U` has 
         `n_dimensions` (features), then you must
         initialize parameters as:
-        >>> n_dimensions = X.shape[0]
+        >>> n_dimensions = U.shape[0]
         >>> key, params = init_mlp(key, n_dimensions, ...)
-    X: Tensor (2d)
+    U: Tensor (2d)
         A matrix of shape: (n_dimensions, n_examples). Note
         that this is different from your common numpy data
         matrix where rows are examples. Here, examples are
         columns.
-    middle_activation: Callable
-        The activation functions for the middle layers of
-        the network. Default's to `jax.nn.swish`.
-    end_activation: Callable
-        The activation functions for the final layer of
-        the networks. Default's to `jax.nn.sigmoid`.
 
     Returns
     -------
     A column vector with `n_examples` entries. These are
     the activations for example in `X`.
     '''
-    a = X
+    U = jnp.clip(U, 0, 1)  # map input to [0, 1]
     for W, b in params[:-1]:
         z = jnp.dot(W, a) + b
         a = middle_activation(z)

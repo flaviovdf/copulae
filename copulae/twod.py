@@ -17,9 +17,7 @@ def C(
     params: PyTree,
     U: Tensor
 ) -> Tensor:
-
-    U = jnp.clip(U, 0, 1)  # map input to [0, 1]
-    return mlp(params, U, jax.nn.swish, jax.nn.sigmoid)
+    return mlp(params, U)
 
 
 batched_C = jax.vmap(C, in_axes=(None, 0), out_axes=0)
