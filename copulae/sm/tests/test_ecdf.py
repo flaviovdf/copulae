@@ -72,6 +72,7 @@ def test_ecdf():
     ecdf = ECDF(data)
     ecdf_sm = smECDF(data)
 
-    assert_array_almost_equal(ecdf_sm.x, ecdf.x)
+    assert(ecdf.x[0] == data.min() - 1e-6)
+    assert_array_almost_equal(ecdf_sm.x[1:], ecdf.x[1:])
     assert_array_almost_equal(ecdf_sm.y, ecdf.y)
     assert_array_almost_equal(ecdf_sm(data), ecdf(data))

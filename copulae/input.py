@@ -8,8 +8,7 @@ neural networks
 from copulae.typing import Tensor
 from copulae.typing import Tuple
 
-from statsmodels.distributions.empirical_distribution \
-    import ECDF
+from copulae.sm.ecdf import ECDF
 
 import jax
 import jax.numpy as jnp
@@ -28,9 +27,7 @@ def generate_copula_net_input(
     ecdfs = []
     for j in range(n_features):
         ecdf = ECDF(D[j])
-        ecdfs.append(
-            (jnp.array(ecdf.x), jnp.array(ecdf.y))
-        )
+        ecdfs.append((ecdf.x, ecdf.y))
 
     # U is used for the copula training
     # M and X are the marginal CDFs used for regularization
@@ -60,9 +57,8 @@ def generate_copula_net_input(
         mask = True
         for j, xy in enumerate(ecdfs):
             pos = jnp.searchsorted(
-                xy[1], Ub[j], side='right'
+                xy[1], Ub[j]
             )
-            pos = pos.at[pos <= 0].set(1)
 
             vals_m = xy[1][pos]
             M_batches = \

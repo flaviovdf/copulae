@@ -64,13 +64,13 @@ class StepFunction(object):
         _y = jnp.asarray(y)
 
         if _x.shape != _y.shape:
-            msg = "x and y do not have the same shape"
+            msg = 'x and y do not have the same shape'
             raise ValueError(msg)
         if len(_x.shape) != 1:
             msg = 'x and y must be 1-dimensional'
             raise ValueError(msg)
 
-        self.x = jnp.r_[-jnp.inf, _x]
+        self.x = jnp.r_[_x.min() - 1e-6, _x]
         self.y = jnp.r_[ival, _y]
 
         if not sorted:
