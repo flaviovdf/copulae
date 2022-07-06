@@ -83,15 +83,3 @@ def generate_copula_net_input(
         Y_batches = Y_batches.at[batch_i].set(Yb)
 
     return U_batches, M_batches, X_batches, Y_batches
-
-
-@jax.jit
-def cross_entropy(
-    Y: Tensor,
-    logits: Tensor
-) -> Tensor:
-    logit = jnp.clip(logits, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(Y, 0, 1)
-    return jnp.mean(
-        -Y * jnp.log(logit) - (1 - Y) * jnp.log(1 - logit)
-    )
