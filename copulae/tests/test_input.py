@@ -128,12 +128,17 @@ def test_Y_is_correct():
     D = jax.random.multivariate_normal(
         subkey, mean=mean, cov=E, shape=(200, )
     )
+    print(D.shape)
 
     _, subkey = jax.random.split(key)
     U_batches, _, _, Y_batches = generate_copula_net_input(
         subkey, D, n_batches=n_batches,
         batch_size=batch_size
     )
+
+    assert(U_batches.shape[0] == 8)
+    assert(U_batches.shape[1] == 2)
+    assert(U_batches.shape[2] == 8)
 
     # get the expected values from the copula equation
     C_batches = jnp.zeros(shape=(n_batches, batch_size, 1))
