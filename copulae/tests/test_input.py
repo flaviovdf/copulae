@@ -113,7 +113,7 @@ def test_Y_is_correct():
     Tests the input generator against a synthetic copula
     '''
     n_batches = 1
-    batch_size = 1024
+    batch_size = 4096
 
     # parameters for the synthetic copula
     rho = 0.65
@@ -137,7 +137,7 @@ def test_Y_is_correct():
 
     assert(U_batches.shape[0] == 1)
     assert(U_batches.shape[1] == 2)
-    assert(U_batches.shape[2] == 1024)
+    assert(U_batches.shape[2] == 4096)
 
     # get the expected values from the copula equation
     C_batches = jnp.zeros(shape=(n_batches, batch_size, 1))
@@ -148,5 +148,5 @@ def test_Y_is_correct():
         C_batches = C_batches.at[batch_i].set(Cb)
 
     assert_array_almost_equal(
-        Y_batches.ravel(), C_batches.ravel()
+        Y_batches.ravel(), C_batches.ravel(), 0.01
     )

@@ -57,7 +57,7 @@ def generate_copula_net_input(
         mask = True
         for j, xy in enumerate(ecdfs):
             pos = jnp.searchsorted(
-                xy[1], Ub[j], side='right'
+                xy[1], Ub[j]
             )
 
             vals_m = xy[1][pos]
