@@ -127,8 +127,7 @@ def test_Y_is_correct():
     key, subkey = jax.random.split(key)
     D = jax.random.multivariate_normal(
         subkey, mean=mean, cov=E, shape=(200, )
-    )
-    print(D.shape)
+    ).T
 
     _, subkey = jax.random.split(key)
     U_batches, _, _, Y_batches = generate_copula_net_input(
