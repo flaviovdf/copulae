@@ -3,9 +3,13 @@
 
 
 from copulae.input import generate_copula_net_input
+from copulae.utils import gauss_copula
+
+from numpy.testing import assert_array_almost_equal
 
 
 import jax
+import jax.numpy as jnp
 
 
 def test_generate_copula_net_input_shapes():
@@ -102,3 +106,43 @@ def test_generate_copula_net_input_values_2():
 
     assert((Y_batches <= 1).all())
     assert((Y_batches >= 0).all())
+
+
+def test_Y_is_correct():
+    '''
+    Tests the input generator against a synthetic copula
+    '''
+    n_batches = 16
+    batch_size = 16
+
+    # parameters for the synthetic copula
+    rho = 0.65
+    mean = jnp.zeros(2)
+    E = jnp.zeros(shape=(2, 2)) + rho
+    E = E.at[0, 0].set(1)
+    E = E.at[1, 1].set(1)
+
+    # dataset
+    key = jax.random.PRNGKey(30091985)
+    key, subkey = jax.random.split(key)
+    D = jax.random.multivariate_normal(
+        subkey, mean=mean, cov=E, shape=(5000, )
+    )
+
+    _, subkey = jax.random.split(key)
+    U_batches, _, _, Y_batches = generate_copula_net_input(
+        subkey, D, n_batches=n_batches,
+        batch_size=batch_size
+    )
+
+    # get the expected values from the copula equation
+    C_batches = jnp.zeros(shape=(n_batches, batch_size, 1))
+    for batch_i in range(n_batches):
+        Cb = gauss_copula(
+            U_batches[batch_i].T, mean, E
+        ).reshape(1, batch_size)
+        C_batches = C_batches.at[batch_i].set(Cb.T)
+
+    assert_array_almost_equal(
+        Y_batches.ravel(), C_batches.ravel()
+    )

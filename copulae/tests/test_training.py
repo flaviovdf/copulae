@@ -14,7 +14,7 @@ import jax.numpy as jnp
 
 def test_init_mlp():
     key = jax.random.PRNGKey(30091985)
-    _, params = init_mlp(key, 2, 3, 8, 1)
+    params = init_mlp(key, 2, 3, 8, 1)
     assert_equal(4, len(params))
 
     weights, bias = params[0]
@@ -40,7 +40,7 @@ def test_init_mlp():
 
 def test_init_mlp_2():
     key = jax.random.PRNGKey(30091985)
-    _, params = init_mlp(key, 3, 2, 4, 0)
+    params = init_mlp(key, 3, 2, 4, 0)
     assert_equal(3, len(params))
 
     weights, bias = params[0]
@@ -68,7 +68,7 @@ def test_mlp_1():
     key = jax.random.PRNGKey(30091985)
     X = jnp.array([[1, 2, 3],
                    [7, 8, 9]], dtype=jnp.float32)
-    _, params = init_mlp(key, X.shape[0], 8, 8, 1)
+    params = init_mlp(key, X.shape[0], 8, 8, 1)
     output = mlp(params, X)
     assert((output <= 1).all())
     assert((output >= 0).all())

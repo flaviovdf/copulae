@@ -45,16 +45,13 @@ def init_mlp(
 
     Returns
     -------
-    key: jax.random.PRNGKey
-        A new random key, the one used as input must be
-        discarded
     params: list
         The parameters (weights, bias) for each layer of
         the network
     '''
     initializer = jax.nn.initializers.lecun_normal()
     params = []
-    new_key, *subkeys = jax.random.split(key, n_layers + 2)
+    subkeys = jax.random.split(key, n_layers + 1)
 
     weights = initializer(
         subkeys[0],
@@ -87,7 +84,7 @@ def init_mlp(
     ) + b_init
     params.append((weights, b))
 
-    return new_key, params
+    return params
 
 
 @jax.jit
