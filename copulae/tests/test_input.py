@@ -144,9 +144,7 @@ def test_Y_is_correct():
     for batch_i in range(n_batches):
         Cb = gauss_copula(
             U_batches[batch_i].T, mean, E
-        ).reshape(1, batch_size)
-        C_batches = C_batches.at[batch_i].set(Cb.T)
+        ).reshape(batch_size, 1)
+        C_batches = C_batches.at[batch_i].set(Cb)
 
-    assert_array_almost_equal(
-        Y_batches.ravel(), C_batches.ravel()
-    )
+    assert_array_almost_equal(Y_batches, C_batches)
