@@ -26,7 +26,7 @@ def generate_copula_net_input(
     n_features = D.shape[0]
     ecdfs = []
     for j in range(n_features):
-        ecdf = ECDF(D[j])
+        ecdf = ECDF(D[j], side='right')
         ecdfs.append((ecdf.x, ecdf.y))
 
     # U is used for the copula training
@@ -57,7 +57,7 @@ def generate_copula_net_input(
         mask = True
         for j, xy in enumerate(ecdfs):
             pos = jnp.searchsorted(
-                xy[1], Ub[j]
+                xy[1], Ub[j], side='right'
             )
 
             vals_m = xy[1][pos]
