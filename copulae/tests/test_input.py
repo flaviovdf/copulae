@@ -112,8 +112,8 @@ def test_Y_is_correct():
     '''
     Tests the input generator against a synthetic copula
     '''
-    n_batches = 16
-    batch_size = 16
+    n_batches = 8
+    batch_size = 8
 
     # parameters for the synthetic copula
     rho = 0.65
@@ -126,7 +126,7 @@ def test_Y_is_correct():
     key = jax.random.PRNGKey(30091985)
     key, subkey = jax.random.split(key)
     D = jax.random.multivariate_normal(
-        subkey, mean=mean, cov=E, shape=(5000, )
+        subkey, mean=mean, cov=E, shape=(200, )
     )
 
     _, subkey = jax.random.split(key)
