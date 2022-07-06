@@ -135,9 +135,9 @@ def test_Y_is_correct():
         batch_size=batch_size
     )
 
-    assert(U_batches.shape[0] == 8)
+    assert(U_batches.shape[0] == 1)
     assert(U_batches.shape[1] == 2)
-    assert(U_batches.shape[2] == 8)
+    assert(U_batches.shape[2] == 1024)
 
     # get the expected values from the copula equation
     C_batches = jnp.zeros(shape=(n_batches, batch_size, 1))
