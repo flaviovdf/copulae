@@ -126,7 +126,7 @@ def test_Y_is_correct():
     key = jax.random.PRNGKey(30091985)
     key, subkey = jax.random.split(key)
     D = jax.random.multivariate_normal(
-        subkey, mean=mean, cov=E, shape=(2000, )
+        subkey, mean=mean, cov=E, shape=(10000, )
     ).T
 
     _, subkey = jax.random.split(key)
