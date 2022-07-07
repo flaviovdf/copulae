@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
-'''Unit tests for our training module estimates'''
+'''Unit tests for our mlp module'''
 
 
-from copulae.training import init_mlp
-from copulae.training import mlp
+from copulae.training.mlp import init_mlp
+from copulae.training.mlp import mlp
 
 from numpy.testing import assert_equal
 

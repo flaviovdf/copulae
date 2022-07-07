@@ -13,7 +13,7 @@ from numpy.testing import assert_almost_equal
 from numpy.testing import assert_array_almost_equal
 
 from statsmodels.distributions.empirical_distribution \
-    import ECDF as smECDF
+    import ECDF as SMECDF
 
 
 import jax
@@ -70,7 +70,7 @@ def test_ecdf():
     print(data)
 
     ecdf = ECDF(data)
-    ecdf_sm = smECDF(data)
+    ecdf_sm = SMECDF(data)
 
     assert(ecdf.x[0] == data.min() - 1e-6)
     assert_array_almost_equal(ecdf_sm.x[1:], ecdf.x[1:])
