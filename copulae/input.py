@@ -14,23 +14,11 @@ import jax
 import jax.numpy as jnp
 
 
-def generate_copula_net_input(
-    key: jax.random.PRNGKey,
-    D: Tensor,
-    min_val: int = 0,
-    max_val: int = 1,
-    n_batches: int = 128,
-    batch_size: int = 64
-) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
-
-    n_features = D.shape[0]
-    ecdfs = []
-    for j in range(n_features):
-        ecdf = ECDF(D[j], side='right')
-        ecdfs.append((ecdf.x, ecdf.y))
-
+def __init_output(n_batches, n_features, batch_size):
     # U is used for the copula training
-    # M and X are the marginal CDFs used for regularization
+    # M are the marginal CDFs used for regularization
+    # X are the X values related to M
+    # Y is the expected copula output
     U_batches = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
@@ -47,6 +35,89 @@ def generate_copula_net_input(
         shape=(n_batches, batch_size, 1),
         dtype=jnp.float32
     )
+    return M_batches, X_batches, U_batches, Y_batches
+
+
+def generate_copula_net_input(
+    key: jax.random.PRNGKey,
+    D: Tensor,
+    min_val: int = 0,
+    max_val: int = 1,
+    n_batches: int = 128,
+    batch_size: int = 64
+) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
+    '''
+    Creates the input tensors needed to trai neural
+    copulas. These tensors will be organized in
+    batches (a total of `n_batches`), each batch containing
+    `batch_size` elements.
+
+    Batches are created using a bootstrap sampling
+    procedure which generates samples based on the
+    empirical cumulative distribution function (ecdf).
+
+    The steps to produce the batches are as follows:
+    1. For each dimension in the dataset `D`:
+        a. Generate `batch_size` random numbers uniformly
+           in [0, 1].
+        b. For each of the numbers above, sample
+           `batch_size` data points for that by
+           sampling from the ecdf of the dimension.
+        c. Store the uniform value from (a) in U; the
+           data points in X; the ecdf of X in M
+           (for marginal);
+    2. and, finally store the joint ecdf for every
+       dimension in Y.
+
+    Steps (1) and (2) generate a single batch.
+
+    Arguments
+    ---------
+    key: jax.random.PRNGKey
+        The key used for random number generation, must be
+        discarded afterwards.
+    D: Tensor
+        Our dataset of (`n_dimensions`, `n_samples`)
+    min_val: int (defaults to 0)
+    max_val: int (defaults to 1)
+        Min and max values are used to generate the uniform
+        random values used as input to the copula. By
+        definition a copula receives only values in [0, 1]
+        as input. However, we may sample values out of this
+        range in order to train corner cases.
+    n_batches: int
+        Number of batches to generate
+    batch_size: int
+        The size of each batch
+
+    Returns
+    -------
+    Four tensors:
+
+    U_batches: Tensor of shape
+               (n_batches, n_dimensions, batch_size)
+        The tensor that serves as input to trai neural
+        copulas.
+    M_batches: Tensor
+                (n_batches, n_dimensions, batch_size)
+        Marginal cumulative distribution functions (ecdf)
+        for each dimension.
+    X_batches: Tensor
+                (n_batches, n_dimensions, batch_size)
+        Data points associated with each marginal above.
+    Y_batches: Tensor
+                (n_batches, n_dimensions, batch_size)
+        The output of the neural copula. A joint cumulative
+        distribution estimate of the values in `X_batches`.
+    '''
+    n_features = D.shape[0]
+    ecdfs = []
+    for j in range(n_features):
+        ecdf = ECDF(D[j], side='right')
+        ecdfs.append((ecdf.x, ecdf.y))
+
+    M_batches, X_batches, U_batches, Y_batches = \
+        __init_output(n_batches, n_features, batch_size)
 
     for batch_i in range(n_batches):
         Ub = jax.random.uniform(
