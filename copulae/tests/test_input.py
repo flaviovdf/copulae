@@ -187,8 +187,8 @@ def test_M_and_X_are_correct():
     ecdf_0 = ECDF(D[0])
     ecdf_1 = ECDF(D[1])
 
-    data_points_0 = M_batches[0][0]
-    data_points_1 = M_batches[0][1]
+    data_points_0 = X_batches[0][0]
+    data_points_1 = X_batches[0][1]
 
     marginal_ecdfs_0 = M_batches[0][0]
     marginal_ecdfs_1 = M_batches[0][1]
