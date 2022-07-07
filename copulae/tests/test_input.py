@@ -2,10 +2,15 @@
 '''Unit tests for input generators'''
 
 
+from copulae.sm.ecdf import ECDF
+
 from copulae.input import generate_copula_net_input
+
 from copulae.utils import gauss_copula
 
+
 from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 
 import jax
@@ -149,4 +154,48 @@ def test_Y_is_correct():
 
     assert_array_almost_equal(
         Y_batches.ravel(), C_batches.ravel(), 0.01
+    )
+
+
+def test_M_and_X_are_correct():
+    '''
+    Tests the input generator against a synthetic copula
+    '''
+    n_batches = 1
+    batch_size = 4096
+
+    # parameters for the synthetic copula
+    rho = 0.65
+    mean = jnp.zeros(2)
+    E = jnp.zeros(shape=(2, 2)) + rho
+    E = E.at[0, 0].set(1)
+    E = E.at[1, 1].set(1)
+
+    # dataset
+    key = jax.random.PRNGKey(30091985)
+    key, subkey = jax.random.split(key)
+    D = jax.random.multivariate_normal(
+        subkey, mean=mean, cov=E, shape=(10000, )
+    ).T
+
+    _, subkey = jax.random.split(key)
+    _, M_batches, X_batches, _ = generate_copula_net_input(
+        subkey, D, n_batches=n_batches,
+        batch_size=batch_size
+    )
+
+    ecdf_0 = ECDF(D[0])
+    ecdf_1 = ECDF(D[1])
+
+    data_points_0 = M_batches[0][0]
+    data_points_1 = M_batches[0][1]
+
+    marginal_ecdfs_0 = M_batches[0][0]
+    marginal_ecdfs_1 = M_batches[0][1]
+
+    assert_array_equal(
+        ecdf_0(data_points_0), marginal_ecdfs_0
+    )
+    assert_array_equal(
+        ecdf_1(data_points_1), marginal_ecdfs_1
     )
