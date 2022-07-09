@@ -1,3 +1,4 @@
+coverage>=6.4.1
 flake8>=4.0.1
 jax>=0.3.13
 numpy>=1.22.4
