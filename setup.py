@@ -16,7 +16,7 @@ if __name__ == "__main__":
         requires = [line.strip() for line in req_file]
 
     setup(
-        name='musica_dcc_ufmg',
+        name='copulae',
         packages=['copulae'],
         install_requires=requires,
         version='0.01',
