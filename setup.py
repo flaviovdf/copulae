@@ -8,7 +8,7 @@ import sys
 
 
 if __name__ == "__main__":
-    if sys.version_info[:2] < (3, 10):
+    if sys.version_info[:2] < (3, 7):
         print('Requires Python version 3.10 or later')
         sys.exit(-1)
 
