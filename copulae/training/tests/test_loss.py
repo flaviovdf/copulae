@@ -2,8 +2,9 @@
 '''Unit tests for loss functions'''
 
 
-from copulae.loss import l1
-from copulae.loss import l2
+from copulae.training.loss import cross_entropy
+from copulae.training.loss import l1
+from copulae.training.loss import l2
 
 
 import jax.numpy as jnp
@@ -37,3 +38,19 @@ def test_l2():
 
     loss = l2(params=params)
     assert(loss == 22)
+
+
+def test_cross_entropy():
+    Y = jnp.array([0, 1, 0]).reshape((1, 3, 1))
+    Ŷ = jnp.array([0.15, 0.6, 0.25]).reshape((1, 3, 1))
+
+    loss = cross_entropy(Y_batches=Y, Ŷ_batches=Ŷ)
+    assert(loss == 0.736)
+
+
+def test_cross_entropy2():
+    Y = jnp.array([0, 1, 0, 0]).reshape((1, 4, 1))
+    Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
+
+    loss = cross_entropy(Y_batches=Y, Ŷ_batches=Ŷ)
+    assert(loss == 0.736)
