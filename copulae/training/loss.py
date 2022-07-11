@@ -1,25 +1,19 @@
 # -*- coding: utf8 -*-
 
 
-from copulae.typing import Tensor
-from copulae.typing import PyTree
+from copulae.training import CopulaTrainingState
 
+from copulae.typing import Tensor
 
 import jax
 import jax.numpy as jnp
 
 
 def cross_entropy(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
-    Ŷ = jnp.clip(Ŷ_batches, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(Y_batches, 0, 1)
+    state: CopulaTrainingState,
+) -> Tensor:
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.Y_batches, 0, 1)
 
     ce_batches = (
         -Y * jnp.log2(Ŷ) - (1 - Y) * jnp.log2(1 - Ŷ)
@@ -29,51 +23,35 @@ def cross_entropy(
 
 
 def l2(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
+    state: CopulaTrainingState,
+) -> Tensor:
     return jnp.array(
         jax.tree_map(
             lambda p: (p ** 2).sum(),
-            params
+            state.params
         )
     ).sum()
 
 
 def l1(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
+    state: CopulaTrainingState,
+) -> Tensor:
     return jnp.array(
         jax.tree_map(
             lambda p: (jnp.abs(p)).sum(),
-            params
+            state.params
         )
     ).sum()
 
 
 def frechet(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
-    L = jnp.clip(U_batches.sum(axis=1) - 1, 0)
-    R = jnp.min(U_batches, axis=1)
-    logits = Ŷ_batches.squeeze(-1)  # same dim as L, and R
+    state: CopulaTrainingState,
+) -> Tensor:
+    L = jnp.clip(state.U_batches.sum(axis=1) - 1, 0)
+    R = jnp.min(state.U_batches, axis=1)
+
+    # same dim as L, and R
+    logits = state.Ŷ_batches.squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
@@ -84,26 +62,14 @@ def frechet(
 
 
 def valid_partial(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
-    dC = copula['partial_density'](params, U_batches)
+    state: CopulaTrainingState,
+) -> Tensor:
+    dC = state.ŶM_batches
     return (dC < 0).mean() + (dC > 1).mean()
 
 
 def valid_density(
-    *,
-    params: PyTree = [],
-    copula: PyTree = {},
-    U_batches: Tensor = jnp.zeros((1, 1, 1)),
-    X_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
-    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
-) -> float:
-    dC = copula['density'](params, U_batches)
-    return (dC < 0).mean()
+    state: CopulaTrainingState,
+) -> Tensor:
+    ddC = state.Ŷc_batches
+    return (ddC < 0).mean()
