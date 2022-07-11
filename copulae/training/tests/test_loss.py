@@ -117,4 +117,4 @@ def test_valid_density():
         Ŷc_batches=Ŷc_batches
     )
     loss = valid_density(state)
-    assert(loss == 2/12)
+    assert(loss == 2.0 / 12)
