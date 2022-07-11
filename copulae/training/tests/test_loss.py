@@ -54,4 +54,3 @@ def test_cross_entropy2():
 
     loss = cross_entropy(Y_batches=Y, Ŷ_batches=Ŷ)
     assert(loss == 1.3864683)
-#
