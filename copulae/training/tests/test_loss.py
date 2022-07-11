@@ -93,7 +93,7 @@ def test_valid_partial():
         jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
     )
     ŶM_batches = ŶM_batches.at[1].set(
-        jnp.array([[-1, -3, 0.001], [2.1, 3.2, 3.2]])
+        jnp.array([[-1, -3, -0.001], [2.1, 3.2, 3.2]])
     )
 
     state = CopulaTrainingState(
