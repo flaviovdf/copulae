@@ -9,7 +9,6 @@ import jax
 import jax.numpy as jnp
 
 
-@jax.jit
 def cross_entropy(
     *,
     params: PyTree = [],
@@ -29,7 +28,6 @@ def cross_entropy(
     return jnp.mean(ce_batches)
 
 
-@jax.jit
 def l2(
     *,
     params: PyTree = [],
@@ -47,7 +45,6 @@ def l2(
     ).sum()
 
 
-@jax.jit
 def l1(
     *,
     params: PyTree = [],
@@ -65,7 +62,6 @@ def l1(
     ).sum()
 
 
-@jax.jit
 def frechet(
     *,
     params: PyTree = [],
@@ -87,7 +83,6 @@ def frechet(
     return loss
 
 
-@jax.jit
 def valid_partial(
     *,
     params: PyTree = [],
@@ -101,7 +96,6 @@ def valid_partial(
     return (dC < 0).mean() + (dC > 1).mean()
 
 
-@jax.jit
 def valid_density(
     *,
     params: PyTree = [],
