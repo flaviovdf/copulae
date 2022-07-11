@@ -93,14 +93,14 @@ def test_valid_partial():
         jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
     )
     ŶM_batches = ŶM_batches.at[1].set(
-        jnp.array([[-1, -3, 0], [2.1, 3.2, 3.2]])
+        jnp.array([[-1, -3, 0.001], [2.1, 3.2, 3.2]])
     )
 
     state = CopulaTrainingState(
         ŶM_batches=ŶM_batches
     )
     loss = valid_partial(state)
-    assert(loss == 0.25)
+    assert(loss == 0.75)
 
 
 def test_valid_density():
@@ -117,4 +117,4 @@ def test_valid_density():
         Ŷc_batches=Ŷc_batches
     )
     loss = valid_density(state)
-    assert(loss == 0.5)
+    assert(loss == 2/12)
