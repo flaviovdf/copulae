@@ -12,12 +12,12 @@ import jax.numpy as jnp
 @jax.jit
 def cross_entropy(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     Ŷ = jnp.clip(Ŷ_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(Y_batches, 0, 1)
@@ -32,12 +32,12 @@ def cross_entropy(
 @jax.jit
 def l2(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     return jnp.array(
         jax.tree_map(
@@ -50,12 +50,12 @@ def l2(
 @jax.jit
 def l1(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     return jnp.array(
         jax.tree_map(
@@ -68,12 +68,12 @@ def l1(
 @jax.jit
 def frechet(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     L = jnp.clip(U_batches.sum(axis=1) - 1, 0)
     R = jnp.min(U_batches, axis=1)
@@ -90,12 +90,12 @@ def frechet(
 @jax.jit
 def valid_partial(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     dC = copula['partial_density'](params, U_batches)
     return (dC < 0).mean() + (dC > 1).mean()
@@ -104,12 +104,12 @@ def valid_partial(
 @jax.jit
 def valid_density(
     *,
-    params: PyTree,
-    copula: PyTree,
-    U_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
-    Ŷ_batches: Tensor
+    params: PyTree = [],
+    copula: PyTree = {},
+    U_batches: Tensor = jnp.zeros((1, 1, 1)),
+    X_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Y_batches: Tensor = jnp.zeros((1, 1, 1)),
+    Ŷ_batches: Tensor = jnp.zeros((1, 1, 1))
 ) -> float:
     dC = copula['density'](params, U_batches)
     return (dC < 0).mean()
