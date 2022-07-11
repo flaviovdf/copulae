@@ -86,7 +86,7 @@ def test_cross_entropy3():
     assert(loss > 0)
 
 
-def test_valid_density():
+def test_valid_partial():
     ŶM_batches = jnp.zeros((2, 2, 3))
 
     ŶM_batches = ŶM_batches.at[0].set(
@@ -99,11 +99,11 @@ def test_valid_density():
     state = CopulaTrainingState(
         ŶM_batches=ŶM_batches
     )
-    loss = valid_density(state)
+    loss = valid_partial(state)
     assert(loss == 0.25)
 
 
-def test_valid_partial():
+def test_valid_density():
     Ŷc_batches = jnp.zeros((2, 2, 3))
 
     Ŷc_batches = Ŷc_batches.at[0].set(
@@ -116,5 +116,5 @@ def test_valid_partial():
     state = CopulaTrainingState(
         Ŷc_batches=Ŷc_batches
     )
-    loss = valid_partial(state)
+    loss = valid_density(state)
     assert(loss == 0.5)

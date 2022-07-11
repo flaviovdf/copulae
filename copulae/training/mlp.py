@@ -17,7 +17,6 @@ import jax
 import jax.numpy as jnp
 
 
-@jax.jit
 def init_mlp(
     key: jax.random.PRNGKey,
     input_size: int,

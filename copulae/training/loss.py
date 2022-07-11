@@ -9,6 +9,7 @@ import jax
 import jax.numpy as jnp
 
 
+@jax.jit
 def cross_entropy(
     state: CopulaTrainingState,
 ) -> Tensor:
@@ -22,6 +23,7 @@ def cross_entropy(
     return jnp.mean(ce_batches)
 
 
+@jax.jit
 def l2(
     state: CopulaTrainingState,
 ) -> Tensor:
@@ -33,6 +35,7 @@ def l2(
     ).sum()
 
 
+@jax.jit
 def l1(
     state: CopulaTrainingState,
 ) -> Tensor:
@@ -44,6 +47,7 @@ def l1(
     ).sum()
 
 
+@jax.jit
 def frechet(
     state: CopulaTrainingState,
 ) -> Tensor:
@@ -61,6 +65,7 @@ def frechet(
     return loss
 
 
+@jax.jit
 def valid_partial(
     state: CopulaTrainingState,
 ) -> Tensor:
@@ -68,6 +73,7 @@ def valid_partial(
     return (dC < 0).mean() + (dC > 1).mean()
 
 
+@jax.jit
 def valid_density(
     state: CopulaTrainingState,
 ) -> Tensor:
