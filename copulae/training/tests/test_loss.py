@@ -60,7 +60,7 @@ def test_cross_entropy2():
 
 
 def test_valid_density():
-    U_batches = jnp.zeros(2, 2, 3)
+    U_batches = jnp.zeros((2, 2, 3))
     U_batches = U_batches.at[0].set(
         jnp.array([[1.1, 2.2, 3.3], [0, 0, 0]])
     )
@@ -92,7 +92,7 @@ def test_valid_density():
 
 
 def test_valid_partial():
-    U_batches = jnp.zeros(2, 2, 3)
+    U_batches = jnp.zeros((2, 2, 3))
     U_batches = U_batches.at[0].set(
         jnp.array([[1.1, 2.2, 3.3], [0, 0, 0]])
     )
