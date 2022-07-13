@@ -55,14 +55,14 @@ def frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.Ŷ_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
     # /2 --> output in the range [0, 1]
     loss = ((-1 * jnp.sign(Ŷ - L)) + 1).mean() / 2
     loss += ((-1 * jnp.sign(R - Ŷ)) + 1).mean() / 2
-    return loss / 2
+    return loss
 
 
 @jax.jit

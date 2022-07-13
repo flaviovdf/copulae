@@ -11,6 +11,7 @@ from copulae.training.loss import l2
 from copulae.training.loss import valid_density
 from copulae.training.loss import valid_partial
 
+from numpy.testing import assert_almost_equal
 
 import jax.numpy as jnp
 
@@ -150,4 +151,4 @@ def test_frechet1():
     )
 
     loss = frechet(state)
-    assert(loss == 5 / 6)
+    assert_almost_equal(loss, 5 / 6)
