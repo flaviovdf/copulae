@@ -51,18 +51,18 @@ def l1(
 def frechet(
     state: CopulaTrainingState,
 ) -> Tensor:
-    L = jnp.clip(state.U_batches.sum(axis=1) - 1, 0)
-    R = jnp.min(state.U_batches, axis=1)
+    L = jnp.clip(state.U_batches.sum(axis=1) - 1, 0, 1)
+    R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    logits = state.Ŷ_batches.squeeze(-1)
+    Ŷ = jnp.clip(state.Ŷ_batches, 0, 1).squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
     # /2 --> output in the range [0, 1]
-    loss = ((-1 * jnp.sign(logits - L)) + 1).mean() / 2
-    loss += ((-1 * jnp.sign(R - logits)) + 1).mean() / 2
-    return loss
+    loss = ((-1 * jnp.sign(Ŷ - L)) + 1).mean() / 2
+    loss += ((-1 * jnp.sign(R - Ŷ)) + 1).mean() / 2
+    return loss / 2
 
 
 @jax.jit

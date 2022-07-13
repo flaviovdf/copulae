@@ -5,6 +5,7 @@
 from copulae.training import CopulaTrainingState
 
 from copulae.training.loss import cross_entropy
+from copulae.training.loss import frechet
 from copulae.training.loss import l1
 from copulae.training.loss import l2
 from copulae.training.loss import valid_density
@@ -118,3 +119,35 @@ def test_valid_density():
     )
     loss = valid_density(state)
     assert(loss == 2.0 / 12)
+
+
+def test_frechet1():
+    U_batches = jnp.zeros((2, 2, 3))
+    ŶC_batches = jnp.zeros((2, 3, 1))
+
+    # max: 0, 0, 0.2
+    # min: 0.1, 0.2, 0.6
+    U_batches = U_batches.at[0].set(
+        jnp.array([[0.1, 0.2, 0.6], [0.4, 0.5, 0.6]])
+    )
+
+    # max: 0.2, 0, 0
+    # min: 0.4, 0.2, 0.3
+    U_batches = U_batches.at[1].set(
+        jnp.array([[0.8, 0.2, 0.3], [0.4, 0.5, 0.6]])
+    )
+
+    ŶC_batches = ŶC_batches.at[0].set(
+        jnp.array([[0.7], [0.9], [0.0]])
+    )
+    ŶC_batches = ŶC_batches.at[1].set(
+        jnp.array([[0.6], [0.9], [0.15]])
+    )
+
+    state = CopulaTrainingState(
+        U_batches=U_batches,
+        ŶC_batches=ŶC_batches
+    )
+
+    loss = frechet(state)
+    assert(loss == 5 / 6)
