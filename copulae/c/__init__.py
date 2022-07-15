@@ -13,6 +13,11 @@ import jax
 import jax.numpy as jnp
 
 
+class Copula(object):
+
+    def cumulative(self, params, U):
+        return self(params, U)
+
 def create_copula(
     forward_fun: Callable,
 ):
@@ -73,6 +78,6 @@ def create_copula(
         out_axes=0
     )
 
-    return (c, batched_c,
+    return (C, batched_C,
             partial_c, batched_partial_c,
-            C, batched_C)
+            c, batched_c)
