@@ -13,11 +13,6 @@ import jax
 import jax.numpy as jnp
 
 
-class Copula(object):
-
-    def cumulative(self, params, U):
-        return self(params, U)
-
 def create_copula(
     forward_fun: Callable,
 ):
