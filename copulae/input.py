@@ -116,41 +116,47 @@ def generate_copula_net_input(
         ecdf = ECDF(D[j], side='right')
         ecdfs.append((ecdf.x, ecdf.y))
 
-    M_batches, X_batches, U_batches, Y_batches = \
-        __init_output(n_batches, n_features, batch_size)
+    @jax.jit
+    def populate():
+        for batch_i in range(n_batches):
+            keys = jax.random.split(key, n_batches)
+            M_batches, X_batches, U_batches, Y_batches = \
+                __init_output(
+                    n_batches, n_features, batch_size)
 
-    for batch_i in range(n_batches):
-        Ub = jax.random.uniform(
-            key, shape=(n_features, batch_size),
-            minval=min_val, maxval=max_val
-        )
-
-        mask = True
-        for j, xy in enumerate(ecdfs):
-            pos = jnp.searchsorted(
-                xy[1], Ub[j]
+            Ub = jax.random.uniform(
+                keys[batch_i],
+                shape=(n_features, batch_size),
+                minval=min_val, maxval=max_val
             )
 
-            vals_m = xy[1][pos]
-            M_batches = \
-                M_batches.at[batch_i, j, :].set(vals_m)
+            mask = True
+            for j, xy in enumerate(ecdfs):
+                pos = jnp.searchsorted(
+                    xy[1], Ub[j]
+                )
 
-            vals_x = xy[0][pos]
-            X_batches = \
-                X_batches.at[batch_i, j, :].set(vals_x)
+                vals_m = xy[1][pos]
+                M_batches = \
+                    M_batches.at[batch_i, j, :].set(vals_m)
 
-            lt = jnp.tile(
-                D[j], batch_size
-            ).reshape(
-                D.shape[1],
-                batch_size
-            ) <= vals_x
-            mask = mask & lt
+                vals_x = xy[0][pos]
+                X_batches = \
+                    X_batches.at[batch_i, j, :].set(vals_x)
 
-        Yb = mask.mean(axis=0)
-        Yb = Yb.reshape(batch_size, 1)
+                lt = jnp.tile(
+                    D[j], batch_size
+                ).reshape(
+                    D.shape[1],
+                    batch_size
+                ) <= vals_x
+                mask = mask & lt
 
-        U_batches = U_batches.at[batch_i].set(Ub)
-        Y_batches = Y_batches.at[batch_i].set(Yb)
+            Yb = mask.mean(axis=0)
+            Yb = Yb.reshape(batch_size, 1)
 
-    return U_batches, M_batches, X_batches, Y_batches
+            U_batches = U_batches.at[batch_i].set(Ub)
+            Y_batches = Y_batches.at[batch_i].set(Yb)
+
+        return U_batches, M_batches, X_batches, Y_batches
+    return populate()
