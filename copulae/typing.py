@@ -22,3 +22,5 @@ PyTree = Union
     Dict[Hashable, "PyTree"],
     None
 ]
+Sequence = Sequence
+Tuple = Tuple

@@ -17,7 +17,7 @@ def test_cumulative():
         W, b = params[1]
         return jax.nn.sigmoid(W @ A + b).T
 
-    cumulative = create_copula(forward_fun)[0]
+    cumulative, _, _ = create_copula(forward_fun)
 
     params = []
     weights = jnp.array([[1.0, 1.0], [1.0, 1.0]])
@@ -28,9 +28,9 @@ def test_cumulative():
     bias = jnp.array([[1.0]])
     params.append((weights, bias))
 
-    U = jnp.zeros(shape=(2, 1), dtype=jnp.float32)
-    U = U.at[0].set(0.5)
-    U = U.at[0].set(0.5)
+    U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
+    U = U.at[0, 0].set(0.5)
+    U = U.at[0, 1].set(0.5)
 
     assert(cumulative(params, U) >= 0)
     assert(cumulative(params, U) <= 1)

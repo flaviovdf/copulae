@@ -73,6 +73,4 @@ def create_copula(
         out_axes=0
     )
 
-    return (C, batched_C,
-            partial_c, batched_partial_c,
-            c, batched_c)
+    return (batched_C, batched_partial_c, batched_c)
