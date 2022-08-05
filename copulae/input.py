@@ -118,8 +118,8 @@ def generate_copula_net_input(
 
     @jax.jit
     def populate():
+        keys = jax.random.split(key, n_batches)
         for batch_i in range(n_batches):
-            keys = jax.random.split(key, n_batches)
             M_batches, X_batches, U_batches, Y_batches = \
                 __init_output(
                     n_batches, n_features, batch_size)
