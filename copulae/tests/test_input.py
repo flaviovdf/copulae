@@ -92,12 +92,12 @@ def test_generate_copula_net_input_values_2():
         subkey, minval=2, maxval=3, shape=(ndim, nex)
     )
 
-    _, subkey = jax.random.split(key)
-    del key
+    key, _ = jax.random.split(key)
+    # del key
 
     U_batches, M_batches, X_batches, Y_batches = \
         generate_copula_net_input(
-            subkey, D, n_batches=16, batch_size=8,
+            key, D, n_batches=16, batch_size=8,
             min_val=-2, max_val=2,
         )
 
@@ -135,9 +135,9 @@ def test_Y_is_correct():
         subkey, mean=mean, cov=E, shape=(10000, )
     ).T
 
-    _, subkey = jax.random.split(key)
+    key, _ = jax.random.split(key)
     U_batches, _, _, Y_batches = generate_copula_net_input(
-        subkey, D, n_batches=n_batches,
+        key, D, n_batches=n_batches,
         batch_size=batch_size
     )
 
@@ -179,9 +179,9 @@ def test_M_and_X_are_correct():
         subkey, mean=mean, cov=E, shape=(10000, )
     ).T
 
-    _, subkey = jax.random.split(key)
+    key, _ = jax.random.split(key)
     _, M_batches, X_batches, _ = generate_copula_net_input(
-        subkey, D, n_batches=n_batches,
+        key, D, n_batches=n_batches,
         batch_size=batch_size
     )
 
