@@ -5,6 +5,7 @@ neural networks
 '''
 
 
+from copulae.typing import Sequence
 from copulae.typing import Tensor
 from copulae.typing import Tuple
 
@@ -42,17 +43,39 @@ def __init_output(n_batches, n_features, batch_size):
 def __populate(
     key: jax.random.PRNGKey,
     D: Tensor,
-    ecdfs: Tuple[Tensor, Tensor],
+    ecdfs: Sequence[Tuple[Tensor, Tensor]],
     min_val: int,
     max_val: int,
     n_batches: int,
     n_features: int,
     batch_size: int
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
-    M_batches, X_batches, U_batches, Y_batches = \
-        __init_output(
-            n_batches, n_features, batch_size
-        )
+    # M_batches, X_batches, U_batches, Y_batches = \
+    #    __init_output(
+    #         n_batches, n_features, batch_size
+    #   )
+
+    # U is used for the copula training
+    # M are the marginal CDFs used for regularization
+    # X are the X values related to M
+    # Y is the expected copula output
+    U_batches = jnp.zeros(
+        shape=(n_batches, n_features, batch_size),
+        dtype=jnp.float32
+    )
+    M_batches = jnp.zeros(
+        shape=(n_batches, n_features, batch_size),
+        dtype=jnp.float32
+    )
+    X_batches = jnp.zeros(
+        shape=(n_batches, n_features, batch_size),
+        dtype=jnp.float32
+    )
+    Y_batches = jnp.zeros(
+        shape=(n_batches, batch_size, 1),
+        dtype=jnp.float32
+    )
+
     keys = jax.random.split(key, n_batches)
     for batch_i in range(n_batches):
         Ub = jax.random.uniform(
