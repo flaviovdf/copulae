@@ -94,4 +94,5 @@ def setup_training(
         X_batches=X_batches,
         Y_batches=Y_batches
     )
-    return state, forward, jax.grad(forward)
+    return cumulative, partial, density, state, \
+        forward, jax.grad(forward)
