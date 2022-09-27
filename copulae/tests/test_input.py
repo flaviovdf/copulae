@@ -59,6 +59,7 @@ def test_generate_copula_net_input_values_1():
     D = jax.random.uniform(
         subkey, minval=2, maxval=3, shape=(ndim, nex)
     )
+    print(D)
 
     _, subkey = jax.random.split(key)
     del key
@@ -74,7 +75,6 @@ def test_generate_copula_net_input_values_1():
     assert((M_batches <= 1).all())
     assert((M_batches >= 0).all())
 
-    print(X_batches)
     assert((X_batches <= 3).all())
     assert((X_batches >= 2).all())
 
@@ -92,12 +92,12 @@ def test_generate_copula_net_input_values_2():
         subkey, minval=2, maxval=3, shape=(ndim, nex)
     )
 
-    key, _ = jax.random.split(key)
-    # del key
+    _, subkey = jax.random.split(key)
+    del key
 
     U_batches, M_batches, X_batches, Y_batches = \
         generate_copula_net_input(
-            key, D, n_batches=16, batch_size=8,
+            subkey, D, n_batches=16, batch_size=8,
             min_val=-2, max_val=2,
         )
 
@@ -194,9 +194,9 @@ def test_M_and_X_are_correct():
     marginal_ecdfs_0 = M_batches[0][0]
     marginal_ecdfs_1 = M_batches[0][1]
 
-    assert_array_equal(
-        ecdf_0(data_points_0), marginal_ecdfs_0
+    assert_array_almost_equal(
+        ecdf_0(data_points_0), marginal_ecdfs_0, 4
     )
-    assert_array_equal(
-        ecdf_1(data_points_1), marginal_ecdfs_1
+    assert_array_almost_equal(
+        ecdf_1(data_points_1), marginal_ecdfs_1, 4
     )

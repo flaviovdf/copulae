@@ -36,7 +36,7 @@ def __init_output(n_batches, n_features, batch_size):
         shape=(n_batches, batch_size, 1),
         dtype=jnp.float32
     )
-    return M_batches, X_batches, U_batches, Y_batches
+    return U_batches, M_batches, X_batches, Y_batches
 
 
 @jax.jit
@@ -46,35 +46,13 @@ def __populate(
     ecdfs: Sequence[Tuple[Tensor, Tensor]],
     min_val: int,
     max_val: int,
-    n_batches: int,
-    n_features: int,
-    batch_size: int
+    U_batches: Tensor,
+    M_batches: Tensor,
+    X_batches: Tensor,
+    Y_batches: Tensor
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
-    # M_batches, X_batches, U_batches, Y_batches = \
-    #    __init_output(
-    #         n_batches, n_features, batch_size
-    #   )
 
-    # U is used for the copula training
-    # M are the marginal CDFs used for regularization
-    # X are the X values related to M
-    # Y is the expected copula output
-    U_batches = jnp.zeros(
-        shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
-    )
-    M_batches = jnp.zeros(
-        shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
-    )
-    X_batches = jnp.zeros(
-        shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
-    )
-    Y_batches = jnp.zeros(
-        shape=(n_batches, batch_size, 1),
-        dtype=jnp.float32
-    )
+    n_batches, n_features, batch_size = U_batches.shape
 
     keys = jax.random.split(key, n_batches)
     for batch_i in range(n_batches):
@@ -193,13 +171,19 @@ def generate_copula_net_input(
         ecdf = ECDF(D[j], side='right')
         ecdfs.append((ecdf.x, ecdf.y))
 
+    U_batches, M_batches, X_batches, Y_batches = \
+       __init_output(
+            n_batches, n_features, batch_size
+      )
+
     return __populate(
         key,
         D,
         ecdfs,
         min_val,
         max_val,
-        n_batches,
-        n_features,
-        batch_size
+        M_batches,
+        X_batches,
+        U_batches,
+        Y_batches
     )
