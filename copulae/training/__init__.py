@@ -43,20 +43,20 @@ CopulaTrainingState = namedtuple(
 )
 
 
-def update_parameters(
-    old_state: CopulaTrainingState,
-    new_parameters: PyTree
-) -> CopulaTrainingState:
-    return CopulaTrainingState(
-        params=new_parameters,
-        U_batches=old_state.U_batches,
-        M_batches=old_state.M_batches,
-        X_batches=old_state.X_batches,
-        Y_batches=old_state.Y_batches,
-        ŶC_batches=old_state.ŶC_batches,
-        ŶM_batches=old_state.ŶM_batches,
-        Ŷc_batches=old_state.Ŷc_batches
-    )
+# def update_parameters(
+#     old_state: CopulaTrainingState,
+#     new_parameters: PyTree
+# ) -> CopulaTrainingState:
+#     return CopulaTrainingState(
+#         params=new_parameters,
+#         U_batches=old_state.U_batches,
+#         M_batches=old_state.M_batches,
+#         X_batches=old_state.X_batches,
+#         Y_batches=old_state.Y_batches,
+#         ŶC_batches=old_state.ŶC_batches,
+#         ŶM_batches=old_state.ŶM_batches,
+#         Ŷc_batches=old_state.Ŷc_batches
+#     )
 
 
 def setup_training(
@@ -87,12 +87,12 @@ def setup_training(
             state.params, state.U_batches
         )
 
-        state = CopulaTrainingState(
-            params=params,
-            U_batches=U_batches,
-            M_batches=M_batches,
-            X_batches=X_batches,
-            Y_batches=Y_batches,
+        new_state = CopulaTrainingState(
+            params=state.params,
+            U_batches=state.U_batches,
+            M_batches=state.M_batches,
+            X_batches=state.X_batches,
+            Y_batches=state.Y_batches,
             ŶC_batches=ŶC_batches,
             ŶM_batches=ŶM_batches,
             Ŷc_batches=Ŷc_batches
@@ -100,7 +100,7 @@ def setup_training(
 
         loss = jnp.zeros((1,), dtype=jnp.float32)
         for w, loss_func in losses:
-            loss += w * loss_func(state)
+            loss += w * loss_func(new_state)
         return loss[0]
 
     state = CopulaTrainingState(
