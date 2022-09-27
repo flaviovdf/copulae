@@ -71,9 +71,16 @@ def setup_training(
             state.params, state.U_batches
         )
 
-        state.ŶC_batches = ŶC_batches
-        state.ŶM_batches = ŶM_batches
-        state.Ŷc_batches = Ŷc_batches
+        state = CopulaTrainingState(
+            params=params,
+            U_batches=U_batches,
+            M_batches=M_batches,
+            X_batches=X_batches,
+            Y_batches=Y_batches,
+            ŶC_batches=ŶC_batches,
+            ŶM_batches=ŶM_batches,
+            Ŷc_batches=Ŷc_batches
+        )
 
         loss = jnp.zeros((1,), dtype=jnp.float32)
         for w, loss_func in losses:
