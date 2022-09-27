@@ -39,7 +39,7 @@ def __init_output(n_batches, n_features, batch_size):
     return U_batches, M_batches, X_batches, Y_batches
 
 
-@jax.jit
+# @jax.jit
 def __populate(
     key: jax.random.PRNGKey,
     D: Tensor,
@@ -172,9 +172,7 @@ def generate_copula_net_input(
         ecdfs.append((ecdf.x, ecdf.y))
 
     U_batches, M_batches, X_batches, Y_batches = \
-       __init_output(
-            n_batches, n_features, batch_size
-      )
+        __init_output(n_batches, n_features, batch_size)
 
     return __populate(
         key,
