@@ -28,10 +28,8 @@ def test_l1():
     bias = jnp.array([[-4]])
     params.append((weights, bias))
 
-    state = CopulaTrainingState(
-        params=params
-    )
-    loss = l1(state)
+    state = CopulaTrainingState()
+    loss = l1(params, state)
     assert_(loss == 8)
 
 
@@ -46,14 +44,14 @@ def test_l2():
     bias = jnp.array([[-4]])
     params.append((weights, bias))
 
-    state = CopulaTrainingState(
-        params=params
-    )
-    loss = l2(state)
+    state = CopulaTrainingState()
+    loss = l2(params, state)
     assert_(loss == 22)
 
 
 def test_cross_entropy():
+    params = []
+
     Y = jnp.array([0, 1, 0]).reshape((1, 3, 1))
     Ŷ = jnp.array([0.15, 0.6, 0.25]).reshape((1, 3, 1))
 
@@ -61,11 +59,12 @@ def test_cross_entropy():
         Y_batches=Y,
         ŶC_batches=Ŷ
     )
-    loss = cross_entropy(state)
+    loss = cross_entropy(params, state)
     assert_(loss > 0)
 
 
 def test_cross_entropy2():
+    params = []
     Y = jnp.array([0, 1, 0, 0]).reshape((1, 4, 1))
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
@@ -73,11 +72,12 @@ def test_cross_entropy2():
         Y_batches=Y,
         ŶC_batches=Ŷ
     )
-    loss = cross_entropy(state)
+    loss = cross_entropy(params, state)
     assert_(loss > 0)
 
 
 def test_cross_entropy3():
+    params = []
     Y = jnp.array([0.1, 0.1, 0.1, 0.1]).reshape((1, 4, 1))
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
@@ -85,11 +85,12 @@ def test_cross_entropy3():
         Y_batches=Y,
         ŶC_batches=Ŷ
     )
-    loss = cross_entropy(state)
+    loss = cross_entropy(params, state)
     assert_(loss > 0)
 
 
 def test_valid_partial():
+    params = []
     ŶM_batches = jnp.zeros((2, 2, 3))
 
     ŶM_batches = ŶM_batches.at[0].set(
@@ -102,11 +103,13 @@ def test_valid_partial():
     state = CopulaTrainingState(
         ŶM_batches=ŶM_batches
     )
-    loss = valid_partial(state)
+    loss = valid_partial(params, state)
     assert_(loss == 0.75)
 
 
 def test_valid_density():
+    params = []
+
     Ŷc_batches = jnp.zeros((2, 2, 3))
 
     Ŷc_batches = Ŷc_batches.at[0].set(
@@ -119,11 +122,13 @@ def test_valid_density():
     state = CopulaTrainingState(
         Ŷc_batches=Ŷc_batches
     )
-    loss = valid_density(state)
+    loss = valid_density(params, state)
     assert_(loss == 2.0 / 12)
 
 
 def test_frechet1():
+    params = []
+
     U_batches = jnp.zeros((2, 2, 3))
     ŶC_batches = jnp.zeros((2, 3, 1))
 
@@ -151,5 +156,5 @@ def test_frechet1():
         ŶC_batches=ŶC_batches
     )
 
-    loss = frechet(state)
+    loss = frechet(params, state)
     assert_almost_equal(loss, 5 / 6)

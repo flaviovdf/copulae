@@ -19,8 +19,6 @@ import jax.numpy as jnp
 CopulaTrainingState = namedtuple(
     'CopulaTrainingState',
     [
-        'params',      # the neural copula parameters
-
         'U_batches',   # the input of the neural copula
         'M_batches',   # the marginal CDFs of the copula
         'X_batches',   # data points associated with U
@@ -31,7 +29,6 @@ CopulaTrainingState = namedtuple(
         'Ŷc_batches'   # the density output of the copula
     ],
     defaults=[
-        tuple(),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
@@ -41,22 +38,6 @@ CopulaTrainingState = namedtuple(
         jnp.zeros((1, 1, 1))
     ]
 )
-
-
-def update_params(
-    state: CopulaTrainingState,
-    new_params: PyTree
-) -> CopulaTrainingState:
-    return CopulaTrainingState(
-        params=new_params,
-        U_batches=state.U_batches,
-        M_batches=state.M_batches,
-        X_batches=state.X_batches,
-        Y_batches=state.Y_batches,
-        ŶC_batches=state.ŶC_batches,
-        ŶM_batches=state.ŶM_batches,
-        Ŷc_batches=state.Ŷc_batches
-    )
 
 
 def setup_training(
@@ -75,20 +56,14 @@ def setup_training(
 
     @jax.jit
     def forward(
+        params: PyTree,
         state: CopulaTrainingState
     ):
-        ŶC_batches = cumulative(
-            state.params, state.U_batches
-        )
-        ŶM_batches = partial(
-            state.params, state.U_batches
-        )
-        Ŷc_batches = density(
-            state.params, state.U_batches
-        )
+        ŶC_batches = cumulative(params, state.U_batches)
+        ŶM_batches = partial(params, state.U_batches)
+        Ŷc_batches = density(params, state.U_batches)
 
         new_state = CopulaTrainingState(
-            params=state.params,
             U_batches=state.U_batches,
             M_batches=state.M_batches,
             X_batches=state.X_batches,
@@ -100,15 +75,14 @@ def setup_training(
 
         loss = jnp.zeros((1,), dtype=jnp.float32)
         for w, loss_func in losses:
-            loss += w * loss_func(new_state)
-        return loss[0]
+            loss += w * loss_func(params, new_state)
+        return loss[0], new_state
 
     state = CopulaTrainingState(
-        params=params,
         U_batches=U_batches,
         M_batches=M_batches,
         X_batches=X_batches,
         Y_batches=Y_batches
     )
     return cumulative, partial, density, state, \
-        forward, jax.grad(forward)
+        forward, jax.grad(forward, has_aux=True)

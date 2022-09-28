@@ -12,6 +12,7 @@ copula like behavior.
 
 from copulae.training import CopulaTrainingState
 
+from copulae.typing import PyTree
 from copulae.typing import Tensor
 
 import jax
@@ -20,6 +21,7 @@ import jax.numpy as jnp
 
 @jax.jit
 def cross_entropy(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -61,6 +63,7 @@ def cross_entropy(
 
 @jax.jit
 def l2(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -78,14 +81,14 @@ def l2(
     '''
     return jnp.array(
         jax.tree_map(
-            lambda p: (p ** 2).sum(),
-            state.params
+            lambda p: (p ** 2).sum(), params
         )
     ).sum()
 
 
 @jax.jit
 def l1(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -103,14 +106,14 @@ def l1(
     '''
     return jnp.array(
         jax.tree_map(
-            lambda p: (jnp.abs(p)).sum(),
-            state.params
+            lambda p: (jnp.abs(p)).sum(), params
         )
     ).sum()
 
 
 @jax.jit
 def frechet(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -153,6 +156,7 @@ def frechet(
 
 @jax.jit
 def valid_partial(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -183,6 +187,7 @@ def valid_partial(
 
 @jax.jit
 def valid_density(
+    params: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
