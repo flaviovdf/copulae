@@ -4,6 +4,7 @@
 
 from copulae.c import create_copula
 
+from numpy.testing import assert_
 
 import jax
 import jax.numpy as jnp
@@ -32,5 +33,5 @@ def test_cumulative():
     U = U.at[0, 0].set(0.5)
     U = U.at[0, 1].set(0.5)
 
-    assert(cumulative(params, U) >= 0)
-    assert(cumulative(params, U) <= 1)
+    assert_(cumulative(params, U) >= 0)
+    assert_(cumulative(params, U) <= 1)

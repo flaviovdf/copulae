@@ -43,22 +43,6 @@ CopulaTrainingState = namedtuple(
 )
 
 
-# def update_parameters(
-#     old_state: CopulaTrainingState,
-#     new_parameters: PyTree
-# ) -> CopulaTrainingState:
-#     return CopulaTrainingState(
-#         params=new_parameters,
-#         U_batches=old_state.U_batches,
-#         M_batches=old_state.M_batches,
-#         X_batches=old_state.X_batches,
-#         Y_batches=old_state.Y_batches,
-#         ŶC_batches=old_state.ŶC_batches,
-#         ŶM_batches=old_state.ŶM_batches,
-#         Ŷc_batches=old_state.Ŷc_batches
-#     )
-
-
 def setup_training(
     forward_fun: Callable,
     params: PyTree,

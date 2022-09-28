@@ -11,6 +11,7 @@ from copulae.training.loss import l2
 from copulae.training.loss import valid_density
 from copulae.training.loss import valid_partial
 
+from numpy.testing import assert_
 from numpy.testing import assert_almost_equal
 
 import jax.numpy as jnp
@@ -31,7 +32,7 @@ def test_l1():
         params=params
     )
     loss = l1(state)
-    assert(loss == 8)
+    assert_(loss == 8)
 
 
 def test_l2():
@@ -49,7 +50,7 @@ def test_l2():
         params=params
     )
     loss = l2(state)
-    assert(loss == 22)
+    assert_(loss == 22)
 
 
 def test_cross_entropy():
@@ -61,7 +62,7 @@ def test_cross_entropy():
         ŶC_batches=Ŷ
     )
     loss = cross_entropy(state)
-    assert(loss > 0)
+    assert_(loss > 0)
 
 
 def test_cross_entropy2():
@@ -73,7 +74,7 @@ def test_cross_entropy2():
         ŶC_batches=Ŷ
     )
     loss = cross_entropy(state)
-    assert(loss > 0)
+    assert_(loss > 0)
 
 
 def test_cross_entropy3():
@@ -85,7 +86,7 @@ def test_cross_entropy3():
         ŶC_batches=Ŷ
     )
     loss = cross_entropy(state)
-    assert(loss > 0)
+    assert_(loss > 0)
 
 
 def test_valid_partial():
@@ -102,7 +103,7 @@ def test_valid_partial():
         ŶM_batches=ŶM_batches
     )
     loss = valid_partial(state)
-    assert(loss == 0.75)
+    assert_(loss == 0.75)
 
 
 def test_valid_density():
@@ -119,7 +120,7 @@ def test_valid_density():
         Ŷc_batches=Ŷc_batches
     )
     loss = valid_density(state)
-    assert(loss == 2.0 / 12)
+    assert_(loss == 2.0 / 12)
 
 
 def test_frechet1():

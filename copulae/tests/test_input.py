@@ -9,8 +9,8 @@ from copulae.input import generate_copula_net_input
 from copulae.utils import gauss_copula
 
 
+from numpy.testing import assert_
 from numpy.testing import assert_array_almost_equal
-from numpy.testing import assert_array_equal
 
 
 import jax
@@ -33,21 +33,21 @@ def test_generate_copula_net_input_shapes():
             subkey, D, n_batches=16, batch_size=8
         )
 
-    assert(U_batches.shape[0] == 16)
-    assert(U_batches.shape[1] == ndim)
-    assert(U_batches.shape[2] == 8)
+    assert_(U_batches.shape[0] == 16)
+    assert_(U_batches.shape[1] == ndim)
+    assert_(U_batches.shape[2] == 8)
 
-    assert(M_batches.shape[0] == 16)
-    assert(M_batches.shape[1] == ndim)
-    assert(M_batches.shape[2] == 8)
+    assert_(M_batches.shape[0] == 16)
+    assert_(M_batches.shape[1] == ndim)
+    assert_(M_batches.shape[2] == 8)
 
-    assert(X_batches.shape[0] == 16)
-    assert(X_batches.shape[1] == ndim)
-    assert(X_batches.shape[2] == 8)
+    assert_(X_batches.shape[0] == 16)
+    assert_(X_batches.shape[1] == ndim)
+    assert_(X_batches.shape[2] == 8)
 
-    assert(Y_batches.shape[0] == 16)
-    assert(Y_batches.shape[1] == 8)
-    assert(Y_batches.shape[2] == 1)
+    assert_(Y_batches.shape[0] == 16)
+    assert_(Y_batches.shape[1] == 8)
+    assert_(Y_batches.shape[2] == 1)
 
 
 def test_generate_copula_net_input_values_1():
@@ -69,17 +69,17 @@ def test_generate_copula_net_input_values_1():
             subkey, D, n_batches=16, batch_size=8
         )
 
-    assert((U_batches <= 1).all())
-    assert((U_batches >= 0).all())
+    assert_((U_batches <= 1).all())
+    assert_((U_batches >= 0).all())
 
-    assert((M_batches <= 1).all())
-    assert((M_batches >= 0).all())
+    assert_((M_batches <= 1).all())
+    assert_((M_batches >= 0).all())
 
-    assert((X_batches <= 3).all())
-    assert((X_batches >= 2).all())
+    assert_((X_batches <= 3).all())
+    assert_((X_batches >= 2).all())
 
-    assert((Y_batches <= 1).all())
-    assert((Y_batches >= 0).all())
+    assert_((Y_batches <= 1).all())
+    assert_((Y_batches >= 0).all())
 
 
 def test_generate_copula_net_input_values_2():
@@ -101,17 +101,17 @@ def test_generate_copula_net_input_values_2():
             min_val=-2, max_val=2,
         )
 
-    assert((U_batches > 1).any())
-    assert((U_batches < 0).any())
+    assert_((U_batches > 1).any())
+    assert_((U_batches < 0).any())
 
-    assert((M_batches <= 1).all())
-    assert((M_batches >= 0).all())
+    assert_((M_batches <= 1).all())
+    assert_((M_batches >= 0).all())
 
-    assert((X_batches <= 3).all())
-    assert((X_batches >= 2).all())
+    assert_((X_batches <= 3).all())
+    assert_((X_batches >= 2).all())
 
-    assert((Y_batches <= 1).all())
-    assert((Y_batches >= 0).all())
+    assert_((Y_batches <= 1).all())
+    assert_((Y_batches >= 0).all())
 
 
 def test_Y_is_correct():
@@ -141,9 +141,9 @@ def test_Y_is_correct():
         batch_size=batch_size
     )
 
-    assert(U_batches.shape[0] == 1)
-    assert(U_batches.shape[1] == 2)
-    assert(U_batches.shape[2] == 4096)
+    assert_(U_batches.shape[0] == 1)
+    assert_(U_batches.shape[1] == 2)
+    assert_(U_batches.shape[2] == 4096)
 
     # get the expected values from the copula equation
     C_batches = jnp.zeros(shape=(n_batches, batch_size, 1))

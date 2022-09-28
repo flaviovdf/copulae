@@ -5,6 +5,8 @@
 from copulae.training.mlp import init_mlp
 from copulae.training.mlp import mlp
 
+
+from numpy.testing import assert_
 from numpy.testing import assert_equal
 
 
@@ -18,24 +20,24 @@ def test_init_mlp():
     assert_equal(4, len(params))
 
     weights, bias = params[0]
-    assert((weights != 0).any())
-    assert(weights.shape[0] == 8)
-    assert(weights.shape[1] == 2)
-    assert((bias == 1).all())
+    assert_((weights != 0).any())
+    assert_(weights.shape[0] == 8)
+    assert_(weights.shape[1] == 2)
+    assert_((bias == 1).all())
 
     for weights, bias in params[1:-1]:
-        assert((weights != 0).any())
-        assert(weights.shape[0] == 8)
-        assert(weights.shape[1] == 8)
-        assert((bias == 1).all())
+        assert_((weights != 0).any())
+        assert_(weights.shape[0] == 8)
+        assert_(weights.shape[1] == 8)
+        assert_((bias == 1).all())
 
     weights, bias = params[-1]
-    assert((weights != 0).any())
-    assert(weights.shape[0] == 1)
-    assert(weights.shape[1] == 8)
-    assert(bias.shape[0] == 1)
-    assert(bias.shape[1] == 1)
-    assert((bias == 1).all())
+    assert_((weights != 0).any())
+    assert_(weights.shape[0] == 1)
+    assert_(weights.shape[1] == 8)
+    assert_(bias.shape[0] == 1)
+    assert_(bias.shape[1] == 1)
+    assert_((bias == 1).all())
 
 
 def test_init_mlp_2():
@@ -44,24 +46,24 @@ def test_init_mlp_2():
     assert_equal(3, len(params))
 
     weights, bias = params[0]
-    assert((weights != 0).any())
-    assert(weights.shape[0] == 4)
-    assert(weights.shape[1] == 3)
-    assert((bias == 0).all())
+    assert_((weights != 0).any())
+    assert_(weights.shape[0] == 4)
+    assert_(weights.shape[1] == 3)
+    assert_((bias == 0).all())
 
     for weights, bias in params[1:-1]:
-        assert((weights != 0).any())
-        assert(weights.shape[0] == 4)
-        assert(weights.shape[1] == 4)
-        assert((bias == 0).all())
+        assert_((weights != 0).any())
+        assert_(weights.shape[0] == 4)
+        assert_(weights.shape[1] == 4)
+        assert_((bias == 0).all())
 
     weights, bias = params[-1]
-    assert((weights != 0).any())
-    assert(weights.shape[0] == 1)
-    assert(weights.shape[1] == 4)
-    assert(bias.shape[0] == 1)
-    assert(bias.shape[1] == 1)
-    assert((bias == 0).all())
+    assert_((weights != 0).any())
+    assert_(weights.shape[0] == 1)
+    assert_(weights.shape[1] == 4)
+    assert_(bias.shape[0] == 1)
+    assert_(bias.shape[1] == 1)
+    assert_((bias == 0).all())
 
 
 def test_mlp_1():
@@ -70,7 +72,7 @@ def test_mlp_1():
                    [7, 8, 9]], dtype=jnp.float32)
     params = init_mlp(key, X.shape[0], 8, 8, 1)
     output = mlp(params, X)
-    assert((output <= 1).all())
-    assert((output >= 0).all())
-    assert(output.shape[0] == 3)
-    assert(output.shape[1] == 1)
+    assert_((output <= 1).all())
+    assert_((output >= 0).all())
+    assert_(output.shape[0] == 3)
+    assert_(output.shape[1] == 1)
