@@ -52,11 +52,11 @@ def cross_entropy(
     Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(state.Y_batches, 0, 1)
 
-    ce_batches = (
+    rv = (
         -Y * jnp.log2(Ŷ) - (1 - Y) * jnp.log2(1 - Ŷ)
-    ).sum(axis=1)
+    ).mean()
 
-    return jnp.mean(ce_batches)
+    return rv
 
 
 @jax.jit
