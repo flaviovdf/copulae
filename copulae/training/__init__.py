@@ -42,7 +42,6 @@ CopulaTrainingState = namedtuple(
 
 def setup_training(
     forward_fun: Callable,
-    params: PyTree,
     U_batches: Tensor,
     M_batches: Tensor,
     X_batches: Tensor,

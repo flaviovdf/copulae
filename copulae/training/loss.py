@@ -62,6 +62,91 @@ def cross_entropy(
 
 
 @jax.jit
+def kld(
+    params: PyTree,
+    state: CopulaTrainingState,
+) -> Tensor:
+    '''
+    Computes the kl-divergence between the neural copula
+    output (capital C, or the Cumulative of the copula),
+    and the empirical multivariate cumulative distribution
+    function. Below we detail which parameters are used.
+
+    ŶC_batches = C(u, v)
+    Y_batches = ECDF(x, y)
+
+    where
+
+    F(X < x) = u
+    F(Y < y) = y
+
+    this method this returns the cross-entropy of
+    Y_batches and ŶC_batches.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.Y_batches, 1e-6, 1 - 1e-6)
+
+    rv = (
+        Y * jnp.log2(Y / Ŷ) + (1 - Y) * jnp.log2((1 - Y) / (1 - Ŷ))
+    ).mean()
+
+    return rv
+
+
+@jax.jit
+def jsd(
+    params: PyTree,
+    state: CopulaTrainingState,
+) -> Tensor:
+    '''
+    Computes the jensen shannon divergence copula
+    output (capital C, or the Cumulative of the copula),
+    and the empirical multivariate cumulative distribution
+    function. Below we detail which parameters are used.
+
+    ŶC_batches = C(u, v)
+    Y_batches = ECDF(x, y)
+
+    where
+
+    F(X < x) = u
+    F(Y < y) = y
+
+    this method this returns the cross-entropy of
+    Y_batches and ŶC_batches.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.Y_batches, 1e-6, 1 - 1e-6)
+
+    rv = (
+        ((Y * jnp.log2(Y / Ŷ) + (1 - Y) * jnp.log2((1 - Y) / (1 - Ŷ))) + \
+         (Ŷ * jnp.log2(Ŷ / Y) + (1 - Ŷ) * jnp.log2((1 - Ŷ) / (1 - Y)))) / 2
+    ).mean()
+
+    return rv
+
+
+@jax.jit
 def l2(
     params: PyTree,
     state: CopulaTrainingState,
