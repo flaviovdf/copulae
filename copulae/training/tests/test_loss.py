@@ -7,7 +7,6 @@ from copulae.training import CopulaTrainingState
 from copulae.training.loss import cross_entropy
 from copulae.training.loss import frechet
 from copulae.training.loss import jsd
-from copulae.training.loss import kld
 from copulae.training.loss import l1
 from copulae.training.loss import l2
 from copulae.training.loss import valid_density
@@ -49,46 +48,6 @@ def test_l2():
     state = CopulaTrainingState()
     loss = l2(params, state)
     assert_(loss == 22)
-
-
-def test_kld():
-    params = []
-
-    Y = jnp.array([0, 1, 0]).reshape((1, 3, 1))
-    Ŷ = jnp.array([0.15, 0.6, 0.25]).reshape((1, 3, 1))
-
-    state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶC_batches=Ŷ
-    )
-    loss = kld(params, state)
-    assert_(loss > 0)
-
-
-def test_kld2():
-    params = []
-    Y = jnp.array([0, 1, 0, 0]).reshape((1, 4, 1))
-    Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
-
-    state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶC_batches=Ŷ
-    )
-    loss = kld(params, state)
-    assert_(loss > 0)
-
-
-def test_kld3():
-    params = []
-    Y = jnp.array([0.1, 0.1, 0.1, 0.1]).reshape((1, 4, 1))
-    Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
-
-    state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶC_batches=Ŷ
-    )
-    loss = kld(params, state)
-    assert_(loss > 0)
 
 
 def test_jsd():
