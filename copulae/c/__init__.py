@@ -41,7 +41,7 @@ def create_copula(
             )(
                 params,
                 u
-            ).squeeze((1, -1)).T
+            ).squeeze()
             return jacobian
         return jax.vmap(j, in_axes=(None, 1))(params, U)
 

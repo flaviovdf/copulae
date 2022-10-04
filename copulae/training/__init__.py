@@ -3,11 +3,15 @@
 
 from copulae.c import create_copula
 
+from copulae.kde import silvermans_method
+from copulae.kde import kde_pdf
+
 from copulae.typing import Callable
 from copulae.typing import PyTree
 from copulae.typing import Tensor
 from copulae.typing import Tuple
 from copulae.typing import Sequence
+
 
 from collections import namedtuple
 
@@ -26,7 +30,9 @@ CopulaTrainingState = namedtuple(
 
         'ŶC_batches',  # the actual output of the copula
         'ŶM_batches',  # the actual marginal CDFs output
-        'Ŷc_batches'   # the density output of the copula
+        'Ŷc_batches',  # the density output of the copula
+
+        'I_pdf'        # the product of the pdf of each dim
     ],
     defaults=[
         jnp.zeros((1, 1, 1)),
@@ -35,7 +41,8 @@ CopulaTrainingState = namedtuple(
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
-        jnp.zeros((1, 1, 1))
+        jnp.zeros((1, 1)),
+        jnp.zeros((1, 1))
     ]
 )
 
@@ -77,11 +84,26 @@ def setup_training(
             loss += w * loss_func(params, new_state)
         return loss[0], new_state
 
+    U_flat = U_batches.reshape(
+        U_batches.shape[1],
+        U_batches.shape[0] * U_batches.shape[2]
+    )
+
+    n = U_flat.shape[1]
+    bw = silvermans_method(n, 1)
+    independence_pdf = 1.0
+    for dim in U_flat.shape[0]:
+        independence_pdf *= kde_pdf(U_flat[dim], bw)
+    I_pdf = independence_pdf.reshape(
+        U_batches.shape[0], U_batches.shape[2]
+    )
+
     state = CopulaTrainingState(
         U_batches=U_batches,
         M_batches=M_batches,
         X_batches=X_batches,
-        Y_batches=Y_batches
+        Y_batches=Y_batches,
+        I_pdf=I_pdf
     )
     return cumulative, partial, density, state, \
         forward, jax.grad(forward, has_aux=True)
