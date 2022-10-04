@@ -92,7 +92,7 @@ def setup_training(
     n = U_flat.shape[1]
     bw = silvermans_method(n, 1)
     independence_pdf = 1.0
-    for dim in U_flat.shape[0]:
+    for dim in range(U_flat.shape[0]):
         independence_pdf *= kde_pdf(U_flat[dim], bw)
     I_pdf = independence_pdf.reshape(
         U_batches.shape[0], U_batches.shape[2]
