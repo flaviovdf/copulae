@@ -68,6 +68,56 @@ def test_marshal_olkin():
     )
 
 
+def test_closed_form_partial():
+    '''
+    Copulas of the form:
+
+    C(u, v) = uv / (u + v - uv)
+
+    Have a closed form partial of:
+
+    c_u(v) =  (v / (u + v - uv))**2
+
+    See example 2.20 of "An introduction to copulas"
+
+    We shall use this expression to test our partial
+    derivatives
+    '''
+    @jax.jit
+    def forward_fun(params, U):
+        return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
+
+    _, partial, _ = create_copula(forward_fun)
+    params = jnp.array([])
+    U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
+    U = U.at[0, 0].set(0.6)
+    U = U.at[0, 1].set(0.2)
+
+    print(partial(params, U))
+    assert_almost_equal(
+        partial(params, U)[0, 0, 0],
+        (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
+    )
+
+    assert_almost_equal(
+        partial(params, U)[0, 1, 0],
+        (0.6 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
+    )
+
+
+def test_partial_shape():
+    '''The shape of the partial is (batches, dim, elems)'''
+    
+    @jax.jit
+    def forward_fun(params, U):
+        return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
+
+    _, partial, _ = create_copula(forward_fun)
+    params = jnp.array([])
+    U = jnp.zeros(shape=(3, 2, 5), dtype=jnp.float32) + 0.1
+    assert_equal((3, 2, 5), partial(params, U).shape)
+
+
 def test_density_shape():
     '''The shape of the density must be batches by elem'''
 
