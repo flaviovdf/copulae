@@ -93,7 +93,6 @@ def test_closed_form_partial():
     U = U.at[0, 0].set(0.6)
     U = U.at[0, 1].set(0.2)
 
-    print(partial(params, U))
     assert_almost_equal(
         partial(params, U)[0, 0, 0],
         (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
