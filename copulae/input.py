@@ -102,7 +102,7 @@ def generate_copula_net_input(
     batch_size: int = 64
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
     '''
-    Creates the input tensors needed to trai neural
+    Creates the input tensors needed to train neural
     copulas. These tensors will be organized in
     batches (a total of `n_batches`), each batch containing
     `batch_size` elements.
@@ -151,7 +151,7 @@ def generate_copula_net_input(
 
     U_batches: Tensor of shape
                (n_batches, n_dimensions, batch_size)
-        The tensor that serves as input to trai neural
+        The tensor that serves as input to train neural
         copulas.
     M_batches: Tensor
                 (n_batches, n_dimensions, batch_size)

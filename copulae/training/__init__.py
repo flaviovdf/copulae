@@ -66,8 +66,8 @@ def setup_training(
         state: CopulaTrainingState
     ):
         ŶC_batches = cumulative(params, state.U_batches)
-        ŶM_batches = partial(params, state.U_batches)
-        Ŷc_batches = density(params, state.U_batches)
+        ŶM_batches = partial(params, state.M_batches)
+        Ŷc_batches = density(params, state.M_batches)
 
         new_state = CopulaTrainingState(
             U_batches=state.U_batches,
