@@ -117,6 +117,15 @@ def data_likelihood(
 
 
 @jax.jit
+def copula_likelihood(
+    params: PyTree,
+    state: CopulaTrainingState,
+) -> Tensor:
+    copula_density = state.Ŷc_batches  # (n_batches, n_ex)
+    return -jnp.log2(jnp.clip(copula_density, 1e-6)).mean()
+
+
+@jax.jit
 def l2(
     params: PyTree,
     state: CopulaTrainingState,
