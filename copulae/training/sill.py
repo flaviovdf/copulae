@@ -127,7 +127,7 @@ def sill_neuron(
     # compute W @ U + b for each group
     # params are squared to maintain monoticity
     A = jax.vmap(
-        lambda W: (W[0] * W[0]) @ U + W[1] * W[1]
+        lambda W: jnp.abs(W[0]) @ U + jnp.abs(W[1])
     )((Ws, bs))
 
     # get the max for the group, axis=1,
