@@ -130,7 +130,7 @@ def mlp(
     a = jnp.clip(U, 0, 1)  # map input to [0, 1]
     for W, b in params[:-1]:
         z = jnp.dot(W, a) + b
-        a = jax.nn.swish(z)
+        a = jax.nn.relu(z)
 
     W, b = params[-1]
     z = jnp.dot(W, a) + b

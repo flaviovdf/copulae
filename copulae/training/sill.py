@@ -24,7 +24,7 @@ def init_sill(
     layer_width: int,
     n_groups_per_neuron: int,
     layer_width_per_group: int,
-    b_init: int = 0
+    b_init: int = 1
 ) -> PyTree:
     '''
     Initializes the layers of monotone neural network.
@@ -47,7 +47,7 @@ def init_sill(
         The width, number of neurons, of each layer
     b_init: int
         The initial value for the biases of each neural
-        (defaults do zero)
+        (defaults do one)
 
     Returns
     -------
@@ -124,11 +124,10 @@ def sill_neuron(
         The example to compute the output. Shape  of
         [in_dim, 1].
     '''
-    # compute W @ U - b for each group
-    # the paper calls the bias t, here we use b
-    # the paper is unclear wether the bias is exponentiated
+    # compute W @ U + b for each group
+    # params are squared to maintain monoticity
     A = jax.vmap(
-        lambda W: jnp.exp(W[0]) @ U - W[1]
+        lambda W: (W[0] * W[0]) @ U + W[1] * W[1]
     )((Ws, bs))
 
     # get the max for the group, axis=1,
@@ -181,6 +180,7 @@ def sill_net(
     '''
     a = jnp.clip(U, 0, 1)
     for Wl, bl in params[:-1]:
+        Wl = Wl * Wl
         z = jax.vmap(
             lambda W, b: sill_neuron(W, b, a),
             in_axes=[0, 0]
