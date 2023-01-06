@@ -127,7 +127,7 @@ def sill_neuron(
     # compute W @ U + b for each group
     # params are expotentiated to maintain positivity
     A = jax.vmap(
-        lambda W: jnp.exp(W[0] * W[0]) @ U + W[1]
+        lambda W: jnp.exp(W[0]) @ jnp.exp(U) + W[1]
     )((Ws, bs))
 
     # get the max for the group, axis=1,
