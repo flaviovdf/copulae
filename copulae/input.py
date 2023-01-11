@@ -21,23 +21,23 @@ def __init_output(n_batches, n_features, batch_size):
     # R are random heights and widths for rectangles
     # X are the dataset values related to M
     # Y is the expected copula output
-    U_batches = jnp.zeros(
+    U_bs = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
     )
-    M_batches = jnp.zeros(
+    M_bs = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
     )
-    X_batches = jnp.zeros(
+    X_bs = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
     )
-    Y_batches = jnp.zeros(
+    Y_bs = jnp.zeros(
         shape=(n_batches, batch_size, 1),
         dtype=jnp.float32
     )
-    return U_batches, M_batches, X_batches, Y_batches
+    return U_bs, M_bs, X_bs, Y_bs
 
 
 def __populate(
@@ -47,14 +47,14 @@ def __populate(
     ecdfs: Sequence[Tuple[Tensor, Tensor]],
     min_val: int,
     max_val: int,
-    U_batches: Tensor,
-    R_batches: Tensor,
-    M_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor
+    U_bs: Tensor,
+    R_bs: Tensor,
+    M_bs: Tensor,
+    X_bs: Tensor,
+    Y_bs: Tensor
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
 
-    n_batches, n_features, batch_size = U_batches.shape
+    n_batches, n_features, batch_size = U_bs.shape
 
     keys = jax.random.split(key, n_batches)
     for batch_i in range(n_batches):
@@ -81,12 +81,10 @@ def __populate(
             )
 
             vals_m = xy[1][pos]
-            M_batches = \
-                M_batches.at[batch_i, j, :].set(vals_m)
+            M_bs = M_bs.at[batch_i, j, :].set(vals_m)
 
             vals_x = xy[0][pos]
-            X_batches = \
-                X_batches.at[batch_i, j, :].set(vals_x)
+            X_bs = X_bs.at[batch_i, j, :].set(vals_x)
 
             lt = jnp.tile(
                 D[j], batch_size
@@ -99,10 +97,10 @@ def __populate(
         Yb = mask.mean(axis=0)
         Yb = Yb.reshape(batch_size, 1)
 
-        U_batches = U_batches.at[batch_i].set(Ub)
-        Y_batches = Y_batches.at[batch_i].set(Yb)
+        U_bs = U_bs.at[batch_i].set(Ub)
+        Y_bs = Y_bs.at[batch_i].set(Yb)
 
-    return U_batches, M_batches, X_batches, Y_batches
+    return U_bs, M_bs, X_bs, Y_bs
 
 
 def generate_copula_net_input(
@@ -181,21 +179,17 @@ def generate_copula_net_input(
     -------
     Four tensors:
 
-    U_batches: Tensor of shape
-               (n_batches, n_dimensions, batch_size)
+    U_bs: Tensor (n_batches, n_dimensions, batch_size)
         The tensor that serves as input to train neural
         copulas.
-    M_batches: Tensor
-                (n_batches, n_dimensions, batch_size)
+    M_bs: Tensor (n_batches, n_dimensions, batch_size)
         Marginal cumulative distribution functions (ecdf)
         for each dimension.
-    X_batches: Tensor
-                (n_batches, n_dimensions, batch_size)
+    X_bs: Tensor (n_batches, n_dimensions, batch_size)
         Data points associated with each marginal above.
-    Y_batches: Tensor
-                (n_batches, n_dimensions, batch_size)
+    Y_bs: Tensor (n_batches, n_dimensions, batch_size)
         The output of the neural copula. A joint cumulative
-        distribution estimate of the values in `X_batches`.
+        distribution estimate of the values in `X_bs`.
     '''
 
     if len(D.shape) != 2:
@@ -216,7 +210,7 @@ def generate_copula_net_input(
         ecdf = ECDF(D[j], side='right')
         ecdfs.append((ecdf.x, ecdf.y))
 
-    U_batches, M_batches, X_batches, Y_batches = \
+    U_bs, M_bs, X_bs, Y_bs = \
         __init_output(n_batches, n_features, batch_size)
 
     return __populate(
@@ -226,8 +220,8 @@ def generate_copula_net_input(
         ecdfs,
         min_val,
         max_val,
-        M_batches,
-        X_batches,
-        U_batches,
-        Y_batches
+        M_bs,
+        X_bs,
+        U_bs,
+        Y_bs
     )
