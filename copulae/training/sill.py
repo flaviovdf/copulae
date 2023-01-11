@@ -132,7 +132,7 @@ def sill_neuron(
     )((Ws, bs))
 
     # get the max for the group, axis=1,
-    # then the min per group
+    # then the min of every group group
     return A.max(axis=1).min(axis=0)
 
 
