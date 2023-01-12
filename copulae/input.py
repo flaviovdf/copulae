@@ -18,6 +18,7 @@ import jax.numpy as jnp
 def __init_output(n_batches, n_features, batch_size):
     # U is used for the copula training
     # M are the marginal CDFs
+    # C are conditional CDFs
     # R are random heights and widths for rectangles
     # X are the dataset values related to M
     # Y is the expected copula output
@@ -29,6 +30,14 @@ def __init_output(n_batches, n_features, batch_size):
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
     )
+    C_bs = jnp.zeros(
+        shape=(n_batches, n_features, batch_size),
+        dtype=jnp.float32
+    )
+    R_bs = jnp.zeros(
+        shape=(n_batches, n_features, batch_size),
+        dtype=jnp.float32
+    )
     X_bs = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
@@ -37,7 +46,7 @@ def __init_output(n_batches, n_features, batch_size):
         shape=(n_batches, batch_size, 1),
         dtype=jnp.float32
     )
-    return U_bs, M_bs, X_bs, Y_bs
+    return U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs
 
 
 def __populate(
@@ -47,14 +56,13 @@ def __populate(
     ecdfs: Sequence[Tuple[Tensor, Tensor]],
     min_val: int,
     max_val: int,
-    U_bs: Tensor,
-    R_bs: Tensor,
-    M_bs: Tensor,
-    X_bs: Tensor,
-    Y_bs: Tensor
+    n_batches: int,
+    batch_size: int
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
 
-    n_batches, n_features, batch_size = U_bs.shape
+    n_features = D.shape[0]
+    U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs = \
+        __init_output(n_batches, n_features, batch_size)
 
     keys = jax.random.split(key, n_batches)
     for batch_i in range(n_batches):
@@ -100,7 +108,7 @@ def __populate(
         U_bs = U_bs.at[batch_i].set(Ub)
         Y_bs = Y_bs.at[batch_i].set(Yb)
 
-    return U_bs, M_bs, X_bs, Y_bs
+    return U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs
 
 
 def generate_copula_net_input(
@@ -177,7 +185,7 @@ def generate_copula_net_input(
 
     Returns
     -------
-    Four tensors:
+    Six tensors:
 
     U_bs: Tensor (n_batches, n_dimensions, batch_size)
         The tensor that serves as input to train neural
@@ -206,22 +214,14 @@ def generate_copula_net_input(
         batch_size = D.shape[1]
 
     ecdfs = []
-    for j in range(n_features):
-        ecdf = ECDF(D[j], side='right')
-        ecdfs.append((ecdf.x, ecdf.y))
+    ecdf = ECDF(D[0], side='right')
+    ecdfs.append((ecdf.x, ecdf.y))
+    ecdf = ECDF(D[1], side='right')
+    ecdfs.append((ecdf.x, ecdf.y))
 
-    U_bs, M_bs, X_bs, Y_bs = \
-        __init_output(n_batches, n_features, batch_size)
+
 
     return __populate(
-        key,
-        D,
-        bootstrap,
-        ecdfs,
-        min_val,
-        max_val,
-        M_bs,
-        X_bs,
-        U_bs,
-        Y_bs
+        key, D, bootstrap, ecdfs, min_val, max_val,
+        n_batches, batch_size
     )
