@@ -15,11 +15,66 @@ import jax
 import jax.numpy as jnp
 
 
+@jax.jit
+def __interp1d_cond(
+    dim1_key, dim2_key, dim1_vals, dim2_vals, C
+):
+    k1b = jnp.searchsorted(dim1_vals, dim1_key)
+    k2b = jnp.searchsorted(dim2_vals, dim2_key)
+
+    n = 0
+    s = 0
+    for pm1 in [0, 1]:
+        for pm2 in [0, 1]:
+            k1 = k1b + pm1
+            k2 = k2b + pm2
+            if k1 < C.shape[0] and k2 < C.shape[1]:
+                s += C[k1, k2]
+                n = n + 1
+    return s / n
+
+
+@jax.jit
+def __populate_conditionals(
+    U_bs, C_bs, C_uv, C_vu, us, vs
+):
+    for batch_i in range(U_bs.shape[0]):
+        for k in range(U_bs.shape[2]):
+            u = U_bs[batch_i, 0, k]
+            v = U_bs[batch_i, 1, k]
+
+            c_uv = __interp1d_cond(u, v, us, vs, C_uv)
+            c_vu = __interp1d_cond(v, u, vs, us, C_vu)
+
+            C_bs.at[batch_i, 0, k].set(c_uv)
+            C_bs.at[batch_i, 1, k].set(c_vu)
+    return C_bs
+
+
+def __create_conditionals(ecdfs, D, dim1, dim2):
+    ys = ecdfs[dim1][1]
+    C = []
+    cond = []
+    for x, y_cond in zip(*ecdfs[dim2]):
+        data = D[dim1, D[dim2] <= x]
+        if data.shape[0] >= 1:
+            ecdf_conditinal = ECDF(data, side='right')
+            ss = jnp.searchsorted(ecdf_conditinal.y, ys)
+            prob = ecdf_conditinal.y[ss]
+        else:
+            prob = jnp.zeros(len(ys), dtype=jnp.float32)
+        C.append(prob)
+        cond.append(y_cond)
+    C = jnp.array(C, dtype=jnp.float32)
+    cond = jnp.array(cond, dtype=jnp.float32)
+
+    return C, cond
+
+
 def __init_output(n_batches, n_features, batch_size):
     # U is used for the copula training
     # M are the marginal CDFs
     # C are conditional CDFs
-    # R are random heights and widths for rectangles
     # X are the dataset values related to M
     # Y is the expected copula output
     U_bs = jnp.zeros(
@@ -34,10 +89,6 @@ def __init_output(n_batches, n_features, batch_size):
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
     )
-    R_bs = jnp.zeros(
-        shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
-    )
     X_bs = jnp.zeros(
         shape=(n_batches, n_features, batch_size),
         dtype=jnp.float32
@@ -46,7 +97,7 @@ def __init_output(n_batches, n_features, batch_size):
         shape=(n_batches, batch_size, 1),
         dtype=jnp.float32
     )
-    return U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs
+    return U_bs, M_bs, C_bs, X_bs, Y_bs
 
 
 def __populate(
@@ -61,13 +112,11 @@ def __populate(
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
 
     n_features = D.shape[0]
-    U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs = \
+    U_bs, M_bs, C_bs, X_bs, Y_bs = \
         __init_output(n_batches, n_features, batch_size)
 
-    keys = jax.random.split(key, n_batches)
+    keys = jax.random.split(key, n_batches + 1)
     for batch_i in range(n_batches):
-        kb, kh, kw = jax.random.split(keys[batch_i], 3)
-
         if bootstrap:
             Ub = jax.random.uniform(
                 keys[batch_i],
@@ -107,6 +156,17 @@ def __populate(
 
         U_bs = U_bs.at[batch_i].set(Ub)
         Y_bs = Y_bs.at[batch_i].set(Yb)
+
+    R_bs = jax.random.uniform(
+        keys[-1], minval=0, maxval=1.0 - U_bs
+    )
+
+    C_uv, vs = __create_conditionals(ecdfs, D, 0, 1)
+    C_vu, us = __create_conditionals(ecdfs, D, 1, 0)
+
+    C_bs = __populate_conditionals(
+        U_bs, C_bs, C_uv, C_vu, us, vs
+    )
 
     return U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs
 
@@ -200,11 +260,7 @@ def generate_copula_net_input(
         distribution estimate of the values in `X_bs`.
     '''
 
-    if len(D.shape) != 2:
-        raise ValueError('D must be of shape (2, n)')
-
-    n_features = D.shape[0]
-    if n_features != 2:
+    if len(D.shape) != 2 or D.shape[0] != 2:
         raise ValueError('D must be of shape (2, n)')
 
     if not bootstrap:
@@ -218,8 +274,6 @@ def generate_copula_net_input(
     ecdfs.append((ecdf.x, ecdf.y))
     ecdf = ECDF(D[1], side='right')
     ecdfs.append((ecdf.x, ecdf.y))
-
-
 
     return __populate(
         key, D, bootstrap, ecdfs, min_val, max_val,
