@@ -1,7 +1,10 @@
 # -*- coding: utf8 -*-
 '''
 This module is used to generate inputs for copula
-neural networks
+neural networks.
+
+This module make's use of regular numpy and not jax numpy,
+thus all operations are in main memory.
 '''
 
 
@@ -9,46 +12,34 @@ from copulae.typing import Sequence
 from copulae.typing import Tensor
 from copulae.typing import Tuple
 
-from copulae.sm.ecdf import ECDF
+from statsmodels.distributions.empirical_distribution \
+    import ECDF
 
-import jax
-import jax.numpy as jnp
+import numpy as np
 
 
-@jax.jit
-def __interp1d_cond(
+def __nn_cond(
     dim1_key, dim2_key, dim1_vals, dim2_vals, C
 ):
-    k1b = jnp.searchsorted(dim1_vals, dim1_key)
-    k2b = jnp.searchsorted(dim2_vals, dim2_key)
-
-    n = 0
-    s = 0
-    for pm1 in [0, 1]:
-        for pm2 in [0, 1]:
-            k1 = k1b + pm1
-            k2 = k2b + pm2
-            if k1 < C.shape[0] and k2 < C.shape[1]:
-                s += C[k1, k2]
-                n = n + 1
-    return s / n
+    k1 = np.searchsorted(dim1_vals, dim1_key)
+    k2 = np.searchsorted(dim2_vals, dim2_key)
+    return C[k1, k2]
 
 
-@jax.jit
 def __populate_conditionals(
-    U_bs, C_bs, C_uv, C_vu, us, vs
+    U_batches, C_uv, C_vu, us, vs
 ):
-    for batch_i in range(U_bs.shape[0]):
-        for k in range(U_bs.shape[2]):
-            u = U_bs[batch_i, 0, k]
-            v = U_bs[batch_i, 1, k]
+    C_batches = np.zeros_like(U_batches)
+    for batch_i in range(U_batches.shape[0]):
+        u = U_batches[batch_i, 0]
+        v = U_batches[batch_i, 1]
 
-            c_uv = __interp1d_cond(u, v, us, vs, C_uv)
-            c_vu = __interp1d_cond(v, u, vs, us, C_vu)
+        c_uv = __nn_cond(u, v, us, vs, C_uv)
+        c_vu = __nn_cond(v, u, vs, us, C_vu)
 
-            C_bs.at[batch_i, 0, k].set(c_uv)
-            C_bs.at[batch_i, 1, k].set(c_vu)
-    return C_bs
+        C_batches[batch_i, 0, :] = c_uv
+        C_batches[batch_i, 1, :] = c_vu
+    return C_batches
 
 
 def __create_conditionals(ecdfs, D, dim1, dim2):
@@ -59,14 +50,14 @@ def __create_conditionals(ecdfs, D, dim1, dim2):
         data = D[dim1, D[dim2] <= x]
         if data.shape[0] >= 1:
             ecdf_conditinal = ECDF(data, side='right')
-            ss = jnp.searchsorted(ecdf_conditinal.y, ys)
+            ss = np.searchsorted(ecdf_conditinal.y, ys)
             prob = ecdf_conditinal.y[ss]
         else:
-            prob = jnp.zeros(len(ys), dtype=jnp.float32)
+            prob = np.zeros(len(ys), dtype=np.float32)
         C.append(prob)
         cond.append(y_cond)
-    C = jnp.array(C, dtype=jnp.float32)
-    cond = jnp.array(cond, dtype=jnp.float32)
+    C = np.array(C, dtype=np.float32)
+    cond = np.array(cond, dtype=np.float32)
 
     return C, cond
 
@@ -74,34 +65,28 @@ def __create_conditionals(ecdfs, D, dim1, dim2):
 def __init_output(n_batches, n_features, batch_size):
     # U is used for the copula training
     # M are the marginal CDFs
-    # C are conditional CDFs
     # X are the dataset values related to M
     # Y is the expected copula output
-    U_bs = jnp.zeros(
+    U_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
+        dtype=np.float32
     )
-    M_bs = jnp.zeros(
+    M_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
+        dtype=np.float32
     )
-    C_bs = jnp.zeros(
+    X_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
+        dtype=np.float32
     )
-    X_bs = jnp.zeros(
-        shape=(n_batches, n_features, batch_size),
-        dtype=jnp.float32
-    )
-    Y_bs = jnp.zeros(
+    Y_batches = np.zeros(
         shape=(n_batches, batch_size, 1),
-        dtype=jnp.float32
+        dtype=np.float32
     )
-    return U_bs, M_bs, C_bs, X_bs, Y_bs
+    return U_batches, M_batches, X_batches, Y_batches
 
 
 def __populate(
-    key: jax.random.PRNGKey,
     D: Tensor,
     bootstrap: bool,
     ecdfs: Sequence[Tuple[Tensor, Tensor]],
@@ -112,38 +97,36 @@ def __populate(
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
 
     n_features = D.shape[0]
-    U_bs, M_bs, C_bs, X_bs, Y_bs = \
+    U_batches, M_batches, X_batches, Y_batches = \
         __init_output(n_batches, n_features, batch_size)
 
-    keys = jax.random.split(key, n_batches + 1)
     for batch_i in range(n_batches):
         if bootstrap:
-            Ub = jax.random.uniform(
-                keys[batch_i],
-                shape=(n_features, batch_size),
-                minval=min_val, maxval=max_val
+            Ub = np.random.uniform(
+                size=(n_features, batch_size),
+                low=min_val, high=max_val
             )
         else:
-            Ub = jnp.zeros(
+            Ub = np.zeros(
                 shape=(n_features, batch_size),
-                dtype=jnp.float32
+                dtype=np.float32
             )
             for j, xy in enumerate(ecdfs):
-                Ub.at[j].set(xy[1])
+                Ub[j] = xy[1]
 
         mask = True
         for j, xy in enumerate(ecdfs):
-            pos = jnp.searchsorted(
+            pos = np.searchsorted(
                 xy[1], Ub[j]
             )
 
             vals_m = xy[1][pos]
-            M_bs = M_bs.at[batch_i, j, :].set(vals_m)
+            M_batches[batch_i, j, :] = vals_m
 
             vals_x = xy[0][pos]
-            X_bs = X_bs.at[batch_i, j, :].set(vals_x)
+            X_batches[batch_i, j, :] = vals_x
 
-            lt = jnp.tile(
+            lt = np.tile(
                 D[j], batch_size
             ).reshape(
                 D.shape[1],
@@ -154,29 +137,31 @@ def __populate(
         Yb = mask.mean(axis=0)
         Yb = Yb.reshape(batch_size, 1)
 
-        U_bs = U_bs.at[batch_i].set(Ub)
-        Y_bs = Y_bs.at[batch_i].set(Yb)
+        U_batches[batch_i, :, :] = Ub
+        Y_batches[batch_i, :, :] = Yb
 
-    R_bs = jax.random.uniform(
-        keys[-1], minval=0, maxval=1.0 - U_bs
+    R_batches = np.random.uniform(
+        low=min_val, high=max_val - U_batches,
+        size=U_batches.shape
     )
 
     C_uv, vs = __create_conditionals(ecdfs, D, 0, 1)
     C_vu, us = __create_conditionals(ecdfs, D, 1, 0)
 
-    C_bs = __populate_conditionals(
-        U_bs, C_bs, C_uv, C_vu, us, vs
+    C_batches = __populate_conditionals(
+        U_batches, C_uv, C_vu, us, vs
     )
 
-    return U_bs, M_bs, C_bs, R_bs, X_bs, Y_bs
+    # small fix for the -infs from statsmodels ecdf
+    d = 1e-6
+    X_batches[X_batches == -np.inf] = X_batches.min() - d
+    return U_batches, M_batches, C_batches, R_batches, \
+        X_batches, Y_batches
 
 
 def generate_copula_net_input(
-    key: jax.random.PRNGKey,
     D: Tensor,
     bootstrap: bool = True,
-    min_val: int = 0,
-    max_val: int = 1,
     n_batches: int = 128,
     batch_size: int = 64
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
@@ -226,9 +211,6 @@ def generate_copula_net_input(
 
     Arguments
     ---------
-    key: jax.random.PRNGKey
-        The key used for random number generation, must be
-        discarded afterwards.
     D: Tensor
         Our dataset of (`n_dimensions`, `n_samples`)
     min_val: int (defaults to 0)
@@ -247,25 +229,30 @@ def generate_copula_net_input(
     -------
     Six tensors:
 
-    U_bs: Tensor (n_batches, n_dimensions, batch_size)
+    U_batches: Tensor (n_batches, n_dimensions, batch_size)
         The tensor that serves as input to train neural
         copulas.
-    M_bs: Tensor (n_batches, n_dimensions, batch_size)
+    M_batches: Tensor (n_batches, n_dimensions, batch_size)
         Marginal cumulative distribution functions (ecdf)
         for each dimension.
-    X_bs: Tensor (n_batches, n_dimensions, batch_size)
+    C_batches: Tensor (n_batches, n_dimensions, batch_size)
+        Conditional CDFs of the form P[U <= u | V = v] and
+        P[V <= v | U = u], u and v are cdf values for each
+        dimension
+    R_batches: Tensor (n_batches, n_dimensions, batch_size)
+        Random width and heights to create rectangles where
+        the left corner is the value on U_batches.
+    X_batches: Tensor (n_batches, n_dimensions, batch_size)
         Data points associated with each marginal above.
-    Y_bs: Tensor (n_batches, n_dimensions, batch_size)
+    Y_batches: Tensor (n_batches, n_dimensions, batch_size)
         The output of the neural copula. A joint cumulative
-        distribution estimate of the values in `X_bs`.
+        distribution estimate of the values in `X_batches`.
     '''
 
     if len(D.shape) != 2 or D.shape[0] != 2:
         raise ValueError('D must be of shape (2, n)')
 
     if not bootstrap:
-        min_val = 0.0
-        max_val = 1.0
         n_batches = 1.0
         batch_size = D.shape[1]
 
@@ -275,7 +262,17 @@ def generate_copula_net_input(
     ecdf = ECDF(D[1], side='right')
     ecdfs.append((ecdf.x, ecdf.y))
 
-    return __populate(
-        key, D, bootstrap, ecdfs, min_val, max_val,
-        n_batches, batch_size
+    from collections import namedtuple
+    TrainingTensors = namedtuple(
+        'TrainingTensors',
+        ['U_batches', 'M_batches', 'C_batches',
+         'R_batches', 'X_batches', 'Y_batches']
     )
+
+    import jax.numpy as jnp
+    rv = map(lambda x: jnp.array(x),
+             __populate(
+                 D, bootstrap, ecdfs, 0, 1.0, n_batches,
+                 batch_size)
+             )
+    return TrainingTensors(*rv)

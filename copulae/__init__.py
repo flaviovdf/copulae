@@ -16,12 +16,9 @@ probably the ones you'll need.
 training: Neural network definitions. Done from scratch as
           to  have more control on how the network behaves.
 
-twod: defines copula networks for two dimensional datasets
+c: defines copula networks for two dimensional datasets
 
-nd: defines copula networks for n-dimesional datasets.
-    Builds on the two dimensional (twod) module.
-
-input: functions for generating copula networks inputs.
+np_input: functions for generating copula networks inputs.
 
 Other Modules
 -------------
