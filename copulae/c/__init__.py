@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 '''
-Contains the base code to create neural copulas.
+Contains the base code to create neural copulas based on
+automatic differentiation.
 '''
 
 
