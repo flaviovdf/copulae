@@ -7,30 +7,20 @@ neural networks.
 
 from collections import namedtuple
 
+
 from copulae.typing import Sequence
 from copulae.typing import Tensor
 from copulae.typing import Tuple
 
+
 from scipy.stats import gaussian_kde
 
+
+from statsmodels.distributions.empirical_distribution \
+    import ECDF
+
+
 import numpy as np
-
-
-def __ecdf(x):
-    xs = np.zeros(x.shape[0] + 1, dtype=x.dtype)
-    ys = np.zeros_like(xs)
-    xs[0] = x.min() - 1e-6
-    xs[1:] = np.sort(x)
-    ys[1:] = np.arange(1, x.shape[0] + 1) / x.shape[0]
-    return xs, ys
-
-
-def __nn_cond(
-    dim1_key, dim2_key, dim1_vals, dim2_vals, C
-):
-    k1 = np.searchsorted(dim1_vals, dim1_key)
-    k2 = np.searchsorted(dim2_vals, dim2_key)
-    return C[k1, k2]
 
 
 def __populate_conditionals(
@@ -38,36 +28,27 @@ def __populate_conditionals(
     probs, keys_v, keys_u, dim_v, dim_u
 ):
     for i in range(U_batches.shape[0]):
+        vs = U_batches[i, dim_v]
+        vs_idx = np.searchsorted(keys_v, vs)
+
         for k in range(U_batches.shape[2]):
-            v = U_batches[i, dim_v, k]
             u = U_batches[i, dim_u, k]
-            v_idx = np.searchsorted(keys_v, v)
+            v_idx = vs_idx[k]
 
             if v_idx >= len(probs):
                 c_vu = 1.0
             else:
                 u_idx = np.searchsorted(keys_u[v_idx], u)
                 if u_idx >= probs[v_idx].shape[0]:
-                    c_vu = 1.0
-                else:
-                    c_vu = probs[v_idx][u_idx]
+                    u_idx = probs[v_idx].shape[0] - 1
+                c_vu = probs[v_idx][u_idx]
             C_batches[i, dim_v, k] = c_vu
 
 
-def __create_conditionals(x_us, us, vs, data_u):
-    x_us = np.array(x_us)
-    us = np.array(us)
-    vs = np.array(vs)
-    data_u = np.array(data_u)
-
-    order_it = np.searchsorted(x_us, data_u)
-    us = us[order_it]
-    vs = vs[order_it]
-
+def __create_conditionals(vs, us):
     probs = []
     keys_u = []
-    keys_v = []
-    for i in range(us.shape[0]):
+    for i in range(vs.shape[0]):
         v = vs[i]
         idx = vs <= v
         to_kde = np.sort(us[idx])
@@ -76,12 +57,12 @@ def __create_conditionals(x_us, us, vs, data_u):
             base = kde.pdf(to_kde)
             probs.append(base * v)
         else:
-            probs.append([0] * i)
+            probs.append(np.zeros(to_kde.shape[0]))
         keys_u.append(to_kde)
-        keys_v.append(v)
 
-    keys_v_np = np.array(keys_v)
+    keys_v_np = np.array(vs)
     order = np.argsort(keys_v_np)
+    keys_v_np = keys_v_np[order]
 
     keys_u_np_unordered = list(map(np.array, keys_u))
     probs_np_unordered = list(map(np.array, probs))
@@ -99,25 +80,23 @@ def __init_output(n_batches, n_features, batch_size):
     # Y is the expected copula output
     U_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=np.float32
     )
     M_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=np.float32
     )
     X_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
-        dtype=np.float32
     )
     Y_batches = np.zeros(
         shape=(n_batches, batch_size, 1),
-        dtype=np.float32
     )
     return U_batches, M_batches, X_batches, Y_batches
 
 
 def __populate(
     D: Tensor,
+    us: Tensor,
+    vs: Tensor,
     bootstrap: bool,
     ecdfs: Sequence[Tuple[Tensor, Tensor]],
     min_val: float,
@@ -139,13 +118,9 @@ def __populate(
         else:
             Ub = np.zeros(
                 shape=(n_features, batch_size),
-                dtype=np.float32
             )
-            for j, xy in enumerate(ecdfs):
-                xs = xy[0]
-                ys = xy[1]
-                idx = np.searchsorted(xs, D[j])
-                Ub[j] = ys[idx]
+            Ub[0] = us
+            Ub[1] = vs
 
         mask = True
         for j, xy in enumerate(ecdfs):
@@ -175,14 +150,10 @@ def __populate(
         size=U_batches.shape
     )
 
-    x_us = ecdfs[0][0]
-    x_vs = ecdfs[1][0]
-    us = ecdfs[0][1]
-    vs = ecdfs[0][1]
     p_vu, keys_p_vu_v, keys_p_vu_u = \
-        __create_conditionals(x_us, us, vs, D[0])
+        __create_conditionals(vs, us)
     p_uv, keys_p_uv_u, keys_p_uv_v = \
-        __create_conditionals(x_vs, vs, us, D[1])
+        __create_conditionals(us, vs)
 
     C_batches = np.zeros_like(U_batches)
     __populate_conditionals(
@@ -193,7 +164,7 @@ def __populate(
         U_batches, C_batches,
         p_uv, keys_p_uv_u, keys_p_uv_v, 0, 1
     )
-
+    C_batches = np.clip(C_batches, 0, 1)
     return U_batches, M_batches, C_batches, R_batches, \
         X_batches, Y_batches
 
@@ -298,17 +269,21 @@ def generate_copula_net_input(
         n_batches = 1
         batch_size = D.shape[1]
 
-    ecdfs = []
-    xs, ys = __ecdf(D[0])
-    ecdfs.append((xs, ys))
+    D = np.asanyarray(D, dtype='f')
+    ecdf_u = ECDF(D[0])
+    ecdf_v = ECDF(D[1])
 
-    xs, ys = __ecdf(D[1])
-    ecdfs.append((xs, ys))
+    ecdfs = []
+    ecdfs.append((ecdf_u.x, ecdf_u(ecdf_u.x)))
+    ecdfs.append((ecdf_v.x, ecdf_v(ecdf_v.x)))
 
     assert np.all(ecdfs[0][0][:-1] <= ecdfs[0][0][1:])
     assert np.all(ecdfs[0][1][:-1] <= ecdfs[0][1][1:])
     assert np.all(ecdfs[1][0][:-1] <= ecdfs[1][0][1:])
     assert np.all(ecdfs[1][1][:-1] <= ecdfs[1][1][1:])
+
+    us = ecdf_u(D[0])
+    vs = ecdf_v(D[1])
 
     TrainingTensors = namedtuple(
         'TrainingTensors',
@@ -317,6 +292,11 @@ def generate_copula_net_input(
     )
 
     rv = __populate(
-        D, bootstrap, ecdfs, 0, 1.0, n_batches, batch_size
+        D, us, vs, bootstrap, ecdfs, 0, 1.0,
+        n_batches, batch_size
     )
+
+    import jax.numpy as jnp
+    rv = map(lambda a: jnp.array(a, dtype=jnp.float32),
+             rv)
     return TrainingTensors(*rv)

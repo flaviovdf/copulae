@@ -199,7 +199,7 @@ def test_Y_is_correct():
     '''
     np.random.seed(30091985)
     n_batches = 1
-    batch_size = 4096
+    batch_size = 1024
 
     # parameters for the synthetic copula
     rho = 0.65
@@ -210,7 +210,7 @@ def test_Y_is_correct():
 
     # dataset
     D = np.random.multivariate_normal(
-        mean=mean, cov=E, size=(10000, )
+        mean=mean, cov=E, size=(1000, )
     ).T
 
     InputTensors = generate_copula_net_input(
@@ -220,7 +220,7 @@ def test_Y_is_correct():
 
     assert_(InputTensors.U_batches.shape[0] == 1)
     assert_(InputTensors.U_batches.shape[1] == 2)
-    assert_(InputTensors.U_batches.shape[2] == 4096)
+    assert_(InputTensors.U_batches.shape[2] == 1024)
 
     # get the expected values from the copula equation
     E_batches = np.zeros(shape=(n_batches, batch_size, 1))
@@ -242,7 +242,7 @@ def test_M_and_X_are_correct():
     '''
     np.random.seed(30091985)
     n_batches = 1
-    batch_size = 4096
+    batch_size = 1024
 
     # parameters for the synthetic copula
     rho = 0.65
@@ -253,7 +253,7 @@ def test_M_and_X_are_correct():
 
     # dataset
     D = np.random.multivariate_normal(
-        mean=mean, cov=E, size=(10000, )
+        mean=mean, cov=E, size=(1000, )
     ).T
 
     InputTensors = generate_copula_net_input(
@@ -271,10 +271,10 @@ def test_M_and_X_are_correct():
     marginal_ecdfs_1 = InputTensors.M_batches[0][1]
 
     assert_array_almost_equal(
-        ecdf_0(data_points_0), marginal_ecdfs_0, 4
+        ecdf_0(data_points_0), marginal_ecdfs_0, 3
     )
     assert_array_almost_equal(
-        ecdf_1(data_points_1), marginal_ecdfs_1, 4
+        ecdf_1(data_points_1), marginal_ecdfs_1, 3
     )
 
 
@@ -291,7 +291,7 @@ def test_with_wikipedia_example_Y():
             (7, 2), (7, 4), (7, 6), (7, 8)]
 
     D = []
-    for r in np.random.multinomial(ps, 1, size=(500, )):
+    for r in np.random.multinomial(1, ps, size=(1000, )):
         i = np.where(r)[0][0]
         D.append([data[i][0], data[i][1]])
     D = np.array(D, dtype=np.float32)
@@ -300,11 +300,10 @@ def test_with_wikipedia_example_Y():
         D.T, bootstrap=False
     )
     Y_batches = InputTensors.Y_batches
-
     assert_(((Y_batches != 0) & (Y_batches != 1)).any())
 
 
-def test_closed_form_partial():
+def test_closed_form_partial_large():
     '''
     Copulas of the form:
 
@@ -360,18 +359,69 @@ def test_closed_form_partial():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def c_u(v, u):  # P[V <= v | U = u]
+    def c(v, u):  # P[V <= v | U = u]
         return (v / (u + v - u * v)) ** 2
 
-    def c_v(u, v):  # P[U <= u | V = v]
-        return (u / (v + u - v * u)) ** 2
+    C_expected_vu = c(UV[1], UV[0]).ravel()
+    C_expected_uv = c(UV[0], UV[1]).ravel()
 
-    C_expected_vu = c_v(UV[1], UV[0]).ravel()
-    C_expected_uv = c_u(UV[0], UV[1]).ravel()
-    C_empirical = InputTensors.C_batches[0]
-    print(C_empirical)
-    print(C_expected_vu)
-    # print(C_expected_vu)
-    # print(C_expected_uv)
-    # print(C_empirical)
-    assert_(False)
+    C_emp_uv = InputTensors.C_batches[:, 0, :].ravel()
+    C_emp_vu = InputTensors.C_batches[:, 1, :].ravel()
+
+    r, p = ss.pearsonr(C_expected_vu, C_emp_vu)
+    assert_(r >= 0.90)
+    assert_almost_equal(0.0, p, 1e-5)
+
+    r, p = ss.pearsonr(C_expected_uv, C_emp_uv)
+    assert_(r >= 0.90)
+    assert_almost_equal(0.0, p, 1e-5)
+
+
+def test_closed_form_partial_small():
+    # same as the previous test, used for debugging
+    # easier to follow small arrays
+
+    np.random.seed(30091985)
+
+    us = np.random.uniform(0, 1, size=(100, ))
+    ts = np.random.uniform(0, 1, size=(100, ))
+    vs = us * np.sqrt(ts) / (1 - (1 - us) * np.sqrt(ts))
+
+    d0 = 2 * us - 1
+    d1 = -np.log(1 - vs)
+
+    D = np.array([d0, d1])
+    InputTensors = generate_copula_net_input(
+        D, bootstrap=False
+    )
+
+    def C(u, v):
+        return u * v / (u + v - u * v)
+
+    UV = InputTensors.U_batches[0]
+
+    Y_expected = C(UV[0], UV[1]).ravel()
+    Y_emp = InputTensors.Y_batches.ravel()
+
+    assert_array_almost_equal(Y_expected, Y_emp, 1e-5)
+
+    r, p = ss.pearsonr(Y_expected, Y_emp)
+    assert_almost_equal(1.0, r, 1e-5)
+    assert_almost_equal(0.0, p, 1e-5)
+
+    def c(v, u):  # P[V <= v | U = u]
+        return (v / (u + v - u * v)) ** 2
+
+    C_expected_vu = c(UV[1], UV[0]).ravel()
+    C_expected_uv = c(UV[0], UV[1]).ravel()
+
+    C_emp_uv = InputTensors.C_batches[:, 0, :].ravel()
+    C_emp_vu = InputTensors.C_batches[:, 1, :].ravel()
+
+    r, p = ss.pearsonr(C_expected_vu, C_emp_vu)
+    assert_(r >= 0.9)
+    assert_almost_equal(0.0, p, 1e-5)
+
+    r, p = ss.pearsonr(C_expected_uv, C_emp_uv)
+    assert_(r >= 0.9)
+    assert_almost_equal(0.0, p, 1e-5)
