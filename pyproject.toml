@@ -1,0 +1,10 @@
+[tool.pyright]
+exclude = [
+    "**/__pycache__",
+    "notebooks/",
+]
+defineConstant = { DEBUG = false }
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = false
