@@ -25,11 +25,13 @@ CopulaTrainingState = namedtuple(
     [
         'U_batches',   # the input of the neural copula
         'M_batches',   # the marginal CDFs of the copula
+        'C_batches',   # the conditional CDFs of the copula
+        'R_batches',   # a random rectangle around U
         'X_batches',   # data points associated with U
         'Y_batches',   # the expected output of the copula
 
-        'ŶC_batches',  # the actual output of the copula
-        'ŶM_batches',  # the actual marginal CDFs output
+        'ŶY_batches',  # the actual output of the copula
+        'ŶC_batches',  # the actual marginal CDFs output
         'Ŷc_batches',  # the density output of the copula
 
         'I_pdf'        # the product of the pdf of each dim
@@ -41,7 +43,11 @@ CopulaTrainingState = namedtuple(
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
+
+        jnp.zeros((1, 1, 1)),
+        jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1)),
+
         jnp.zeros((1, 1))
     ]
 )
@@ -51,6 +57,8 @@ def setup_training(
     forward_fun: Callable,
     U_batches: Tensor,
     M_batches: Tensor,
+    C_batches: Tensor,
+    R_batches: Tensor,
     X_batches: Tensor,
     Y_batches: Tensor,
     losses: Sequence[Tuple[float, Callable]]
@@ -65,18 +73,23 @@ def setup_training(
         params: PyTree,
         state: CopulaTrainingState
     ):
-        ŶC_batches = cumulative(params, state.U_batches)
-        ŶM_batches = partial(params, state.M_batches)
+        ŶY_batches = cumulative(params, state.U_batches)
+        ŶC_batches = partial(params, state.M_batches)
         Ŷc_batches = density(params, state.M_batches)
 
         new_state = CopulaTrainingState(
             U_batches=state.U_batches,
             M_batches=state.M_batches,
+            C_batches=state.C_batches,
+            R_batches=state.R_batches,
             X_batches=state.X_batches,
             Y_batches=state.Y_batches,
+
+            ŶY_batches=ŶY_batches,
             ŶC_batches=ŶC_batches,
-            ŶM_batches=ŶM_batches,
-            Ŷc_batches=Ŷc_batches
+            Ŷc_batches=Ŷc_batches,
+
+            I_pdf=state.I_pdf
         )
 
         loss = jnp.zeros((1,), dtype=jnp.float32)
@@ -101,6 +114,8 @@ def setup_training(
     state = CopulaTrainingState(
         U_batches=U_batches,
         M_batches=M_batches,
+        C_batches=C_batches,
+        R_batches=R_batches,
         X_batches=X_batches,
         Y_batches=Y_batches,
         I_pdf=I_pdf

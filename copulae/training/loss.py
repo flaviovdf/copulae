@@ -21,7 +21,7 @@ import jax.numpy as jnp
 
 @jax.jit
 def cross_entropy(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -30,7 +30,7 @@ def cross_entropy(
     and the empirical multivariate cumulative distribution
     function. Below we detail which parameters are used.
 
-    ŶC_batches = C(u, v)
+    ŶY_batches = C(u, v)
     Y_batches = ECDF(x, y)
 
     where
@@ -39,7 +39,7 @@ def cross_entropy(
     F(Y < y) = y
 
     this method this returns the cross-entropy of
-    Y_batches and ŶC_batches.
+    Y_batches and ŶY_batches.
 
     Arguments
     ---------
@@ -51,7 +51,7 @@ def cross_entropy(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Ŷ = jnp.clip(state.ŶY_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(state.Y_batches, 0, 1)
 
     rv = (
@@ -63,7 +63,7 @@ def cross_entropy(
 
 @jax.jit
 def jsd(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -72,7 +72,7 @@ def jsd(
     and the empirical multivariate cumulative distribution
     function. Below we detail which parameters are used.
 
-    ŶC_batches = C(u, v)
+    ŶY_batches = C(u, v)
     Y_batches = ECDF(x, y)
 
     where
@@ -81,7 +81,7 @@ def jsd(
     F(Y < y) = y
 
     this method this returns the cross-entropy of
-    Y_batches and ŶC_batches.
+    Y_batches and ŶY_batches.
 
     Arguments
     ---------
@@ -93,7 +93,7 @@ def jsd(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Ŷ = jnp.clip(state.ŶY_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(state.Y_batches, 1e-6, 1 - 1e-6)
 
     left = Y * jnp.log2(Y / Ŷ)
@@ -106,7 +106,7 @@ def jsd(
 
 @jax.jit
 def data_likelihood(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     copula_density = state.Ŷc_batches  # (n_batches, n_ex)
@@ -118,7 +118,7 @@ def data_likelihood(
 
 @jax.jit
 def copula_likelihood(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     copula_density = state.Ŷc_batches  # (n_batches, n_ex)
@@ -128,16 +128,15 @@ def copula_likelihood(
 @jax.jit
 def l2(
     params: PyTree,
-    state: CopulaTrainingState,
+    _: CopulaTrainingState,
 ) -> Tensor:
     '''
     Simple L2 regularization on the parameters of the net.
 
     Arguments
     ---------
-    state: CopulaTrainingState
-        The tensors composing the last evaluation of the
-        neural copula
+    params: PyTree
+        The parameters to compute l2
 
     Returns
     -------
@@ -153,15 +152,15 @@ def l2(
 @jax.jit
 def l1(
     params: PyTree,
-    state: CopulaTrainingState,
+    _: CopulaTrainingState,
 ) -> Tensor:
     '''
     Simple L1 regularization on the parameters of the net.
 
     Arguments
     ---------
-    state: CopulaTrainingState
-        The tensors composing the last evaluation of the
+    params: PyTree
+        The parameters to compute l2
         neural copula
 
     Returns
@@ -177,7 +176,7 @@ def l1(
 
 @jax.jit
 def frechet(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -208,7 +207,7 @@ def frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
@@ -220,7 +219,7 @@ def frechet(
 
 @jax.jit
 def valid_partial(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
@@ -230,7 +229,7 @@ def valid_partial(
     F(X < x) = u
     F(Y < y) = y
 
-    This value, stored in ŶM_batches must be in [0, 1].
+    This value, stored in ŶC_batches must be in [0, 1].
     That is, cumulative distributions are always in [0, 1].
     This method will count the fraction of values outside
     this range.
@@ -245,13 +244,13 @@ def valid_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    dC = state.ŶM_batches
+    dC = state.ŶC_batches
     return (dC < 0).mean() + (dC > 1).mean()
 
 
 @jax.jit
 def valid_density(
-    params: PyTree,
+    _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
     '''
