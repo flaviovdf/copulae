@@ -62,6 +62,36 @@ def cross_entropy(
 
 
 @jax.jit
+def cross_entropy_partial(
+    _: PyTree,
+    state: CopulaTrainingState,
+) -> Tensor:
+    '''
+    Computes the cross entropy between the neural copula
+    output for conditional CDFs (derivatives of C),
+    and the empirical conditional CDFs estimated from data.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.C_batches, 0, 1)
+
+    rv = (
+        -Y * jnp.log2(Ŷ) - (1 - Y) * jnp.log2(1 - Ŷ)
+    ).mean()
+
+    return rv
+
+
+@jax.jit
 def jsd(
     _: PyTree,
     state: CopulaTrainingState,
