@@ -57,7 +57,7 @@ def test_marshal_olkin():
             U[0] * jnp.power(U[1], 1.0 - a2)
         )
 
-    cumulative, _, density = create_copula(forward_fun)
+    _, _, density = create_copula(forward_fun)
     params = jnp.array([0.25, 0.75])
     U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
     U = U.at[0, 0].set(0.6)
@@ -84,7 +84,7 @@ def test_closed_form_partial():
     derivatives
     '''
     @jax.jit
-    def forward_fun(params, U):
+    def forward_fun(_, U):
         return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
 
     _, partial, _ = create_copula(forward_fun)
@@ -93,7 +93,6 @@ def test_closed_form_partial():
     U = U.at[0, 0].set(0.6)
     U = U.at[0, 1].set(0.2)
 
-    print(partial(params, U)[0].shape)
     assert_almost_equal(
         partial(params, U)[0, 0, 0],
         (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
@@ -108,7 +107,7 @@ def test_closed_form_partial():
 def test_partial_shape():
     '''The shape of the partial is (batches, dim, elems)'''
     @jax.jit
-    def forward_fun(params, U):
+    def forward_fun(_, U):
         return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
 
     _, partial, _ = create_copula(forward_fun)
