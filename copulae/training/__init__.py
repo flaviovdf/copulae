@@ -16,6 +16,9 @@ from copulae.typing import Sequence
 from collections import namedtuple
 
 
+import flax
+
+
 import jax
 import jax.numpy as jnp
 
@@ -55,17 +58,25 @@ CopulaTrainingState = namedtuple(
 
 def setup_training(
     forward_fun: Callable,
-    U_batches: Tensor,
-    M_batches: Tensor,
-    C_batches: Tensor,
-    R_batches: Tensor,
-    X_batches: Tensor,
-    Y_batches: Tensor,
+    TrainingTensors: Tuple[Tensor, Tensor, Tensor, Tensor,
+                           Tensor, Tensor],
     losses: Sequence[Tuple[float, Callable]]
 ):
-    cumulative, partial, density = create_copula(
-        forward_fun
-    )
+
+    U_batches = TrainingTensors.U_batches
+    M_batches = TrainingTensors.M_batches
+    C_batches = TrainingTensors.C_batches
+    R_batches = TrainingTensors.R_batches
+    X_batches = TrainingTensors.X_batches
+    Y_batches = TrainingTensors.Y_batches
+
+    if isinstance(forward_fun, flax.nn.Module):
+        def net(params, U):
+            forward_fun.apply(params, U)
+    else:
+        net = forward_fun
+
+    cumulative, partial, density = create_copula(net)
     losses = losses.copy()
 
     @jax.jit
