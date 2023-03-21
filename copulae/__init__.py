@@ -18,13 +18,12 @@ training: Neural network definitions. Done from scratch as
 
 c: defines copula networks for two dimensional datasets
 
-np_input: functions for generating copula networks inputs.
+input: functions for generating copula networks inputs.
 
 Other Modules
 -------------
 
-kde: kernel density estimators used as auxiliary functions
-     in network training.
+kde: kernel density estimators in jax (legacy)
 
 typing: Some type aliases for type annotations.
 
