@@ -70,9 +70,9 @@ def setup_training(
     X_batches = TrainingTensors.X_batches
     Y_batches = TrainingTensors.Y_batches
 
-    if isinstance(forward_fun, flax.nn.Module):
+    if isinstance(forward_fun, flax.linen.Module):
         def net(params, U):
-            forward_fun.apply(params, U)
+            return forward_fun.apply(params, U)
     else:
         net = forward_fun
 
