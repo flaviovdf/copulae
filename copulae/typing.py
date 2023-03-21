@@ -19,7 +19,6 @@ PyTree = Union[
     Tuple["PyTree", ...],
     Sequence["PyTree"],
     Dict[Hashable, "PyTree"],
-    None
 ]
 Sequence = Sequence
 Tuple = Tuple

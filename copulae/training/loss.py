@@ -92,6 +92,37 @@ def cross_entropy_partial(
 
 
 @jax.jit
+def jsd_partial(
+    _: PyTree,
+    state: CopulaTrainingState,
+) -> Tensor:
+    '''
+    Computes the Jensen Shannon Div between the neural
+    copula output for conditional CDFs (derivatives of C),
+    and the empirical conditional CDFs estimated from data.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.C_batches, 1e-6, 1 - 1e-6)
+
+    left = Y * jnp.log2(Y / Ŷ)
+    left += (1 - Y) * jnp.log2((1 - Y) / (1 - Ŷ))
+
+    right = Ŷ * jnp.log2(Ŷ / Y)
+    right += (1 - Ŷ) * jnp.log2((1 - Ŷ) / (1 - Y))
+    return (left + right).mean()
+
+
+@jax.jit
 def jsd(
     _: PyTree,
     state: CopulaTrainingState,
@@ -139,10 +170,11 @@ def data_likelihood(
     _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
-    copula_density = state.Ŷc_batches  # (n_batches, n_ex)
-    kde_density = state.I_pdf
-    return -jnp.log2(
-        jnp.clip(copula_density * kde_density, 1e-6)
+    # (n_batches, n_ex)
+    copula_density = jnp.clip(state.Ŷc_batches, 1e-6)
+    kde_density = jnp.clip(state.I_pdf, 1e-6)
+    return -(
+        jnp.log2(copula_density) + jnp.log2(kde_density)
     ).mean()
 
 
