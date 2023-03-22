@@ -359,7 +359,7 @@ def test_closed_form_partial_large():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def c(v, u):  # P[V <= v | U = u]
+    def c(v, u):  # P[U <= v | U = u]
         return (v / (u + v - u * v)) ** 2
 
     C_expected_vu = c(UV[1], UV[0]).ravel()

@@ -95,12 +95,12 @@ def test_closed_form_partial():
 
     assert_almost_equal(
         partial(params, U)[0, 0, 0],
-        (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
+        (0.6 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
     )
 
     assert_almost_equal(
         partial(params, U)[0, 1, 0],
-        (0.6 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
+        (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
     )
 
 

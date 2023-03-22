@@ -44,10 +44,15 @@ def create_copula(
                 u
             ).squeeze()
             return jacobian
-        return jnp.swapaxes(
+        aux = jnp.swapaxes(
             jax.vmap(j, in_axes=(None, 1))(params, U),
             -2, -1
         )
+        rv = jnp.zeros_like(aux)
+        rv = rv.at[0].set(aux[1])
+        rv = rv.at[1].set(aux[0])
+        print(rv.shape)
+        return rv
 
     batched_partial_c = jax.vmap(
         partial_c,
