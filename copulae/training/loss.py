@@ -378,7 +378,8 @@ def sq_frechet(
     # same dim as L, and R
     Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
 
-    rv = jnp.power(Ŷ[Ŷ < L], 2) + jnp.power(Ŷ[Ŷ > R], 2)
+    rv = jnp.power(jnp.clip(L - Ŷ, 0), 2)
+    rv += jnp.power(jnp.clip(Ŷ - R, 0), 2)
     return rv.mean()
 
 
@@ -441,8 +442,8 @@ def sq_valid_partial(
     Tensor of size (1, 1) with the loss
     '''
     dC = state.ŶC_batches
-    rv = jnp.power(dC[dC < 0], 2)
-    rv += jnp.power(dC[dC > 0], 2)
+    rv = jnp.power(jnp.clip(-dC, 0), 2)
+    rv += jnp.power(jnp.clip(dC - 1, 0), 2)
     return rv.mean()
 
 
@@ -497,4 +498,4 @@ def sq_valid_density(
     Tensor of size (1, 1) with the loss
     '''
     ddC = state.Ŷc_batches
-    return jnp.power(ddC[ddC < 0], 2).mean()
+    return jnp.power(jnp.clip(-ddC), 2).mean()
