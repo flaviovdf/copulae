@@ -498,4 +498,4 @@ def sq_valid_density(
     Tensor of size (1, 1) with the loss
     '''
     ddC = state.Ŷc_batches
-    return jnp.power(jnp.clip(-ddC), 2).mean()
+    return jnp.power(jnp.clip(-ddC, 0), 2).mean()
