@@ -7,6 +7,9 @@ Employs code from
 '''
 
 
+from copulae.typing import Tensor
+
+
 import jax
 import jax.numpy as jnp
 
@@ -31,9 +34,9 @@ def silvermans_method(n: int, d: int) -> float:
 
 @jax.jit
 def kde_pdf(
-    x: jnp.array,
+    x: Tensor,
     bandwidth: float
-) -> jnp.array:
+) -> Tensor:
     '''
     Computes a Gaussian KDE estimate of the probability
     density function (pdf) for the given dataset.
@@ -82,7 +85,7 @@ def kde_pdf(
 
 @jax.jit
 def kde_cdf(
-    x: jnp.ndarray,
+    x: Tensor,
     bandwidth: float
 ) -> jnp.ndarray:
     '''

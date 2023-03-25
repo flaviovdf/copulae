@@ -8,3 +8,6 @@ defineConstant = { DEBUG = false }
 reportMissingImports = true
 reportMissingTypeStubs = false
 reportGeneralTypeIssues = false
+
+[tool.mypy]
+enable_recursive_aliases = true
