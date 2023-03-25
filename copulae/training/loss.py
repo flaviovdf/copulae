@@ -234,7 +234,23 @@ def data_likelihood(
     _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
-    # (n_batches, n_ex)
+    '''
+    The second derivative of a 2d Copula is a density
+    function. The density of the dataset is this second
+    deriviative times the marginal densities.
+
+    Here, we simply aim at maximizing the data likelihood.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
     copula_density = jnp.clip(state.Ŷc_batches, 1e-6)
     kde_density = jnp.clip(state.I_pdf, 1e-6)
     return -(
@@ -247,6 +263,20 @@ def copula_likelihood(
     _: PyTree,
     state: CopulaTrainingState,
 ) -> Tensor:
+    '''
+    The second derivative of a 2d Copula is a density
+    function. Here, we simply aim at maximizing it.
+
+    Arguments
+    ---------
+    state: CopulaTrainingState
+        The tensors composing the last evaluation of the
+        neural copula
+
+    Returns
+    -------
+    Tensor of size (1, 1) with the loss
+    '''
     copula_density = state.Ŷc_batches  # (n_batches, n_ex)
     return -jnp.log2(jnp.clip(copula_density, 1e-6)).mean()
 
