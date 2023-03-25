@@ -363,7 +363,7 @@ def frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶY_batches, 0, 1) #.squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
@@ -406,7 +406,7 @@ def sq_frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶY_batches, 0, 1) # .squeeze(-1)
 
     rv = jnp.power(jnp.clip(L - Ŷ, 0), 2)
     rv += jnp.power(jnp.clip(Ŷ - R, 0), 2)
