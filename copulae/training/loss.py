@@ -30,7 +30,7 @@ def cross_entropy(
     and the empirical multivariate cumulative distribution
     function. Below we detail which parameters are used.
 
-    ŶY_batches = C(u, v)
+    ŶC_batches = C(u, v)
     Y_batches = ECDF(x, y)
 
     where
@@ -39,7 +39,7 @@ def cross_entropy(
     F(Y < y) = y
 
     this method this returns the cross-entropy of
-    Y_batches and ŶY_batches.
+    Y_batches and ŶC_batches.
 
     Arguments
     ---------
@@ -51,8 +51,8 @@ def cross_entropy(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶY_batches, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(state.Y_batches, 0, 1)
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.YC_batches, 0, 1)
 
     rv = (
         -Y * jnp.log2(Ŷ) - (1 - Y) * jnp.log2(1 - Ŷ)
@@ -82,7 +82,7 @@ def cross_entropy_partial(
     Tensor of size (1, 1) with the loss
     '''
     Ŷ = jnp.clip(state.ŶdC_batches, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(state.C_batches, 0, 1)
+    Y = jnp.clip(state.YdC_batches, 0, 1)
 
     rv = (
         -Y * jnp.log2(Ŷ) - (1 - Y) * jnp.log2(1 - Ŷ)
@@ -102,7 +102,7 @@ def jsd(
     and the empirical multivariate cumulative distribution
     function. Below we detail which parameters are used.
 
-    ŶY_batches = C(u, v)
+    ŶC_batches = C(u, v)
     Y_batches = ECDF(x, y)
 
     where
@@ -111,7 +111,7 @@ def jsd(
     F(Y < y) = y
 
     this method this returns the cross-entropy of
-    Y_batches and ŶY_batches.
+    Y_batches and ŶC_batches.
 
     Arguments
     ---------
@@ -123,8 +123,8 @@ def jsd(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶY_batches, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(state.Y_batches, 1e-6, 1 - 1e-6)
+    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.YC_batches, 1e-6, 1 - 1e-6)
 
     left = Y * jnp.log2(Y / Ŷ)
     left += (1 - Y) * jnp.log2((1 - Y) / (1 - Ŷ))
@@ -155,7 +155,7 @@ def jsd_partial(
     Tensor of size (1, 1) with the loss
     '''
     Ŷ = jnp.clip(state.ŶdC_batches, 1e-6, 1 - 1e-6)
-    Y = jnp.clip(state.C_batches, 1e-6, 1 - 1e-6)
+    Y = jnp.clip(state.YdC_batches, 1e-6, 1 - 1e-6)
 
     left = Y * jnp.log2(Y / Ŷ)
     left += (1 - Y) * jnp.log2((1 - Y) / (1 - Ŷ))
@@ -176,7 +176,7 @@ def sq_error(
     and the empirical multivariate cumulative distribution
     function. Below we detail which parameters are used.
 
-    ŶY_batches = C(u, v)
+    ŶC_batches = C(u, v)
     Y_batches = ECDF(x, y)
 
     where
@@ -185,7 +185,7 @@ def sq_error(
     F(Y < y) = y
 
     this method this returns the cross-entropy of
-    Y_batches and ŶY_batches.
+    Y_batches and ŶC_batches.
 
     Arguments
     ---------
@@ -197,8 +197,8 @@ def sq_error(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = state.ŶY_batches
-    Y = state.Y_batches
+    Ŷ = state.ŶC_batches
+    Y = state.YC_batches
 
     return jnp.power(Y - Ŷ, 2).mean()
 
@@ -224,7 +224,7 @@ def sq_error_partial(
     Tensor of size (1, 1) with the loss
     '''
     Ŷ = state.ŶdC_batches
-    Y = state.C_batches
+    Y = state.YdC_batches
 
     return jnp.power(Y - Ŷ, 2).mean()
 
@@ -363,7 +363,7 @@ def frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)
 
     # -1 * sign --> penalizes the negative values
     # +1 --> output in the range [0, 2]
@@ -406,7 +406,7 @@ def sq_frechet(
     R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
 
     # same dim as L, and R
-    Ŷ = jnp.clip(state.ŶY_batches, 0, 1).squeeze(-1)
+    Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)
 
     rv = jnp.power(jnp.clip(L - Ŷ, 0), 2)
     rv += jnp.power(jnp.clip(Ŷ - R, 0), 2)

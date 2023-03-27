@@ -24,7 +24,7 @@ import numpy as np
 
 
 def __populate_conditionals(
-    UV_batches, dC_batches,
+    UV_batches, YdC_batches,
     probs, keys_v, keys_u, dim_v, dim_u
 ):
     for i in range(UV_batches.shape[0]):
@@ -42,7 +42,7 @@ def __populate_conditionals(
                 if u_idx >= probs[v_idx].shape[0]:
                     u_idx = probs[v_idx].shape[0] - 1
                 c_vu = probs[v_idx][u_idx]
-            dC_batches[i, dim_v, k] = c_vu
+            YdC_batches[i, dim_v, k] = c_vu
 
 
 def __create_conditionals(vs, us):
@@ -74,7 +74,7 @@ def __create_conditionals(vs, us):
 
 
 def __init_output(n_batches, n_features, batch_size):
-    # U is used for the copula training
+    # UV is used for the copula training
     # M are the marginal CDFs
     # X are the dataset values related to M
     # Y is the expected copula output
@@ -87,10 +87,10 @@ def __init_output(n_batches, n_features, batch_size):
     X_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
     )
-    Y_batches = np.zeros(
+    YC_batches = np.zeros(
         shape=(n_batches, batch_size, 1),
     )
-    return UV_batches, M_batches, X_batches, Y_batches
+    return UV_batches, M_batches, X_batches, YC_batches
 
 
 def __populate(
@@ -106,7 +106,7 @@ def __populate(
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
 
     n_features = D.shape[0]
-    UV_batches, M_batches, X_batches, Y_batches = \
+    UV_batches, M_batches, X_batches, YC_batches = \
         __init_output(n_batches, n_features, batch_size)
 
     for batch_i in range(n_batches):
@@ -143,7 +143,7 @@ def __populate(
         Yb = Yb.reshape(batch_size, 1)
 
         UV_batches[batch_i, :, :] = Ub
-        Y_batches[batch_i, :, :] = Yb
+        YC_batches[batch_i, :, :] = Yb
 
     R_batches = np.random.uniform(
         low=min_val, high=max_val - UV_batches,
@@ -155,18 +155,18 @@ def __populate(
     p_uv, keys_p_uv_u, keys_p_uv_v = \
         __create_conditionals(us, vs)
 
-    dC_batches = np.zeros_like(UV_batches)
+    YdC_batches = np.zeros_like(UV_batches)
     __populate_conditionals(
-        UV_batches, dC_batches,
+        UV_batches, YdC_batches,
         p_vu, keys_p_vu_v, keys_p_vu_u, 1, 0
     )
     __populate_conditionals(
-        UV_batches, dC_batches,
+        UV_batches, YdC_batches,
         p_uv, keys_p_uv_u, keys_p_uv_v, 0, 1
     )
-    dC_batches = np.clip(dC_batches, 0, 1)
-    return UV_batches, M_batches, dC_batches, R_batches, \
-        X_batches, Y_batches
+    YdC_batches = np.clip(YdC_batches, 0, 1)
+    return UV_batches, M_batches, X_batches, R_batches, \
+        YdC_batches, YC_batches
 
 
 def generate_copula_net_input(
@@ -222,7 +222,7 @@ def generate_copula_net_input(
     Arguments
     ---------
     D: Tensor
-        Our dataset of (`2`, `n_samples`)
+        Our dataset of shape (2, n_samples)
     bootstrap: bool
         Bootstrap input or not
     n_batches: int
@@ -248,16 +248,16 @@ def generate_copula_net_input(
         contains seen data, whereas U are samples when
         bootstrap=True. Thus, M will be the closest value
         to U in the dataset.
-    dC_batches: Tensor (n_batches, 2, batch_size)
-        Conditional CDFs of the form P[U <= u | V = v] and
-        P[V <= v | U = u], u and v are cdf values for each
-        dimension
     R_batches: Tensor (n_batches, 2, batch_size)
         Random width and heights to create rectangles where
         the left corner is the value on UV_batches.
     X_batches: Tensor (n_batches, 2, batch_size)
         Data points associated with each marginal above.
-    Y_batches: Tensor (n_batches, 2, batch_size)
+    YdC_batches: Tensor (n_batches, 2, batch_size)
+        Conditional CDFs of the form P[U <= u | V = v] and
+        P[V <= v | U = u], u and v are cdf values for each
+        dimension
+    YC_batches: Tensor (n_batches, 2, batch_size)
         The output of the neural copula. A joint cumulative
         distribution estimate of the values in `X_batches`.
     '''
@@ -287,8 +287,8 @@ def generate_copula_net_input(
 
     TrainingTensors = namedtuple(
         'TrainingTensors',
-        ['UV_batches', 'M_batches', 'dC_batches',
-         'R_batches', 'X_batches', 'Y_batches']
+        ['UV_batches', 'M_batches', 'X_batches',
+         'R_batches', 'YdC_batches', 'YC_batches']
     )
 
     rv = __populate(

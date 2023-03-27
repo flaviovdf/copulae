@@ -26,18 +26,19 @@ import jax.numpy as jnp
 CopulaTrainingState = namedtuple(
     'CopulaTrainingState',
     [
-        'U_batches',   # the input of the neural copula
-        'M_batches',   # the marginal CDFs of the copula
-        'C_batches',   # the conditional CDFs of the copula
-        'R_batches',   # a random rectangle around U
-        'X_batches',   # data points associated with U
-        'Y_batches',   # the expected output of the copula
+        'U_batches',    # the input of the neural copula
+        'M_batches',    # the marginal CDFs of the copula
+        'X_batches',    # data points associated with U
+        'R_batches',    # a random rectangle around U
 
-        'ŶY_batches',  # the actual output of the copula
+        'YdC_batches',  # conditional CDFs of the copula
+        'YC_batches',   # the expected output of the copula
+
+        'ŶC_batches',   # the actual output of the copula
         'ŶdC_batches',  # the actual marginal CDFs output
-        'Ŷc_batches',  # the density output of the copula
+        'Ŷc_batches',   # the density output of the copula
 
-        'I_pdf'        # the product of the pdf of each dim
+        'I_pdf'         # the product of the marginal pdfs
     ],
     defaults=[
         jnp.zeros((1, 1, 1)),
@@ -65,10 +66,10 @@ def setup_training(
 
     U_batches = TrainingTensors.U_batches
     M_batches = TrainingTensors.M_batches
-    C_batches = TrainingTensors.C_batches
     R_batches = TrainingTensors.R_batches
     X_batches = TrainingTensors.X_batches
-    Y_batches = TrainingTensors.Y_batches
+    YdC_batches = TrainingTensors.YdC_batches
+    YC_batches = TrainingTensors.YC_batches
 
     if isinstance(forward_fun, flax.linen.Module):
         def net(params, U):
@@ -84,19 +85,19 @@ def setup_training(
         params: PyTree,
         state: CopulaTrainingState
     ):
-        ŶY_batches = cumulative(params, state.U_batches)
+        ŶC_batches = cumulative(params, state.U_batches)
         ŶdC_batches = partial(params, state.M_batches)
         Ŷc_batches = density(params, state.M_batches)
 
         new_state = CopulaTrainingState(
             U_batches=state.U_batches,
             M_batches=state.M_batches,
-            C_batches=state.C_batches,
-            R_batches=state.R_batches,
             X_batches=state.X_batches,
-            Y_batches=state.Y_batches,
+            R_batches=state.R_batches,
+            C_batches=state.YdC_batches,
+            Y_batches=state.YC_batches,
 
-            ŶY_batches=ŶY_batches,
+            ŶC_batches=ŶC_batches,
             ŶdC_batches=ŶdC_batches,
             Ŷc_batches=Ŷc_batches,
 
@@ -125,10 +126,10 @@ def setup_training(
     state = CopulaTrainingState(
         U_batches=U_batches,
         M_batches=M_batches,
-        C_batches=C_batches,
-        R_batches=R_batches,
         X_batches=X_batches,
-        Y_batches=Y_batches,
+        R_batches=R_batches,
+        YdC_batches=YdC_batches,
+        YC_batches=YC_batches,
         I_pdf=I_pdf
     )
     return cumulative, partial, density, state, \

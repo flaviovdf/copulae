@@ -57,8 +57,8 @@ def test_jsd():
     Ŷ = jnp.array([0.15, 0.6, 0.25]).reshape((1, 3, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = jsd(params, state)
     assert_(loss > 0)
@@ -70,8 +70,8 @@ def test_jsd2():
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = jsd(params, state)
     assert_(loss > 0)
@@ -83,8 +83,8 @@ def test_jsd3():
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = jsd(params, state)
     assert_(loss > 0)
@@ -97,8 +97,8 @@ def test_cross_entropy():
     Ŷ = jnp.array([0.15, 0.6, 0.25]).reshape((1, 3, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = cross_entropy(params, state)
     assert_(loss > 0)
@@ -110,8 +110,8 @@ def test_cross_entropy2():
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = cross_entropy(params, state)
     assert_(loss > 0)
@@ -123,8 +123,8 @@ def test_cross_entropy3():
     Ŷ = jnp.array([0.15, 0.6, 0.25, 0]).reshape((1, 4, 1))
 
     state = CopulaTrainingState(
-        Y_batches=Y,
-        ŶY_batches=Ŷ
+        YC_batches=Y,
+        ŶC_batches=Ŷ
     )
     loss = cross_entropy(params, state)
     assert_(loss > 0)
@@ -171,7 +171,7 @@ def test_frechet1():
     params = []
 
     U_batches = jnp.zeros((2, 2, 3))
-    ŶY_batches = jnp.zeros((2, 3, 1))
+    ŶC_batches = jnp.zeros((2, 3, 1))
 
     # max: 0, 0, 0.2
     # min: 0.1, 0.2, 0.6
@@ -185,16 +185,16 @@ def test_frechet1():
         jnp.array([[0.8, 0.2, 0.3], [0.4, 0.5, 0.6]])
     )
 
-    ŶY_batches = ŶY_batches.at[0].set(
+    ŶC_batches = ŶC_batches.at[0].set(
         jnp.array([[0.7], [0.9], [0.0]])
     )
-    ŶY_batches = ŶY_batches.at[1].set(
+    ŶC_batches = ŶC_batches.at[1].set(
         jnp.array([[0.6], [0.9], [0.15]])
     )
 
     state = CopulaTrainingState(
         U_batches=U_batches,
-        ŶY_batches=ŶY_batches
+        ŶC_batches=ŶC_batches
     )
 
     loss = frechet(params, state)
