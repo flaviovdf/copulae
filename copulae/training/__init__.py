@@ -34,7 +34,7 @@ CopulaTrainingState = namedtuple(
         'Y_batches',   # the expected output of the copula
 
         'ŶY_batches',  # the actual output of the copula
-        'ŶC_batches',  # the actual marginal CDFs output
+        'ŶdC_batches',  # the actual marginal CDFs output
         'Ŷc_batches',  # the density output of the copula
 
         'I_pdf'        # the product of the pdf of each dim
@@ -85,7 +85,7 @@ def setup_training(
         state: CopulaTrainingState
     ):
         ŶY_batches = cumulative(params, state.U_batches)
-        ŶC_batches = partial(params, state.M_batches)
+        ŶdC_batches = partial(params, state.M_batches)
         Ŷc_batches = density(params, state.M_batches)
 
         new_state = CopulaTrainingState(
@@ -97,7 +97,7 @@ def setup_training(
             Y_batches=state.Y_batches,
 
             ŶY_batches=ŶY_batches,
-            ŶC_batches=ŶC_batches,
+            ŶdC_batches=ŶdC_batches,
             Ŷc_batches=Ŷc_batches,
 
             I_pdf=state.I_pdf

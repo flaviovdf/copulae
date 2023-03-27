@@ -116,6 +116,7 @@ def mlp(
         initialize parameters as:
         >>> n_dimensions = U.shape[0]
         >>> key, params = init_mlp(key, n_dimensions, ...)
+
     U: Tensor (2d)
         A matrix of shape: (n_dimensions, n_examples). Note
         that this is different from your common numpy data

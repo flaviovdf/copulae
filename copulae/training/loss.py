@@ -81,7 +81,7 @@ def cross_entropy_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Ŷ = jnp.clip(state.ŶdC_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(state.C_batches, 0, 1)
 
     rv = (
@@ -154,7 +154,7 @@ def jsd_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = jnp.clip(state.ŶC_batches, 1e-6, 1 - 1e-6)
+    Ŷ = jnp.clip(state.ŶdC_batches, 1e-6, 1 - 1e-6)
     Y = jnp.clip(state.C_batches, 1e-6, 1 - 1e-6)
 
     left = Y * jnp.log2(Y / Ŷ)
@@ -223,7 +223,7 @@ def sq_error_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    Ŷ = state.ŶC_batches
+    Ŷ = state.ŶdC_batches
     Y = state.C_batches
 
     return jnp.power(Y - Ŷ, 2).mean()
@@ -425,7 +425,7 @@ def valid_partial(
     F(X < x) = u
     F(Y < y) = y
 
-    This value, stored in ŶC_batches must be in [0, 1].
+    This value, stored in ŶdC_batches must be in [0, 1].
     That is, cumulative distributions are always in [0, 1].
     This method will count the fraction of values outside
     this range.
@@ -440,7 +440,7 @@ def valid_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    dC = state.ŶC_batches
+    dC = state.ŶdC_batches
     return (dC < 0).mean() + (dC > 1).mean()
 
 
@@ -456,7 +456,7 @@ def sq_valid_partial(
     F(X < x) = u
     F(Y < y) = y
 
-    This value, stored in ŶC_batches must be in [0, 1].
+    This value, stored in ŶdC_batches must be in [0, 1].
     That is, cumulative distributions are always in [0, 1].
     This method will sum the square of values outside
     this range.
@@ -471,7 +471,7 @@ def sq_valid_partial(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    dC = state.ŶC_batches
+    dC = state.ŶdC_batches
     rv = jnp.power(jnp.clip(-dC, 0), 2)
     rv += jnp.power(jnp.clip(dC - 1, 0), 2)
     return rv.mean()

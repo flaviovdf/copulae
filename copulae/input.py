@@ -24,15 +24,15 @@ import numpy as np
 
 
 def __populate_conditionals(
-    U_batches, C_batches,
+    UV_batches, dC_batches,
     probs, keys_v, keys_u, dim_v, dim_u
 ):
-    for i in range(U_batches.shape[0]):
-        vs = U_batches[i, dim_v]
+    for i in range(UV_batches.shape[0]):
+        vs = UV_batches[i, dim_v]
         vs_idx = np.searchsorted(keys_v, vs)
 
-        for k in range(U_batches.shape[2]):
-            u = U_batches[i, dim_u, k]
+        for k in range(UV_batches.shape[2]):
+            u = UV_batches[i, dim_u, k]
             v_idx = vs_idx[k]
 
             if v_idx >= len(probs):
@@ -42,7 +42,7 @@ def __populate_conditionals(
                 if u_idx >= probs[v_idx].shape[0]:
                     u_idx = probs[v_idx].shape[0] - 1
                 c_vu = probs[v_idx][u_idx]
-            C_batches[i, dim_v, k] = c_vu
+            dC_batches[i, dim_v, k] = c_vu
 
 
 def __create_conditionals(vs, us):
@@ -78,7 +78,7 @@ def __init_output(n_batches, n_features, batch_size):
     # M are the marginal CDFs
     # X are the dataset values related to M
     # Y is the expected copula output
-    U_batches = np.zeros(
+    UV_batches = np.zeros(
         shape=(n_batches, n_features, batch_size),
     )
     M_batches = np.zeros(
@@ -90,7 +90,7 @@ def __init_output(n_batches, n_features, batch_size):
     Y_batches = np.zeros(
         shape=(n_batches, batch_size, 1),
     )
-    return U_batches, M_batches, X_batches, Y_batches
+    return UV_batches, M_batches, X_batches, Y_batches
 
 
 def __populate(
@@ -106,7 +106,7 @@ def __populate(
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
 
     n_features = D.shape[0]
-    U_batches, M_batches, X_batches, Y_batches = \
+    UV_batches, M_batches, X_batches, Y_batches = \
         __init_output(n_batches, n_features, batch_size)
 
     for batch_i in range(n_batches):
@@ -142,12 +142,12 @@ def __populate(
         Yb = mask.mean(axis=0)
         Yb = Yb.reshape(batch_size, 1)
 
-        U_batches[batch_i, :, :] = Ub
+        UV_batches[batch_i, :, :] = Ub
         Y_batches[batch_i, :, :] = Yb
 
     R_batches = np.random.uniform(
-        low=min_val, high=max_val - U_batches,
-        size=U_batches.shape
+        low=min_val, high=max_val - UV_batches,
+        size=UV_batches.shape
     )
 
     p_vu, keys_p_vu_v, keys_p_vu_u = \
@@ -155,17 +155,17 @@ def __populate(
     p_uv, keys_p_uv_u, keys_p_uv_v = \
         __create_conditionals(us, vs)
 
-    C_batches = np.zeros_like(U_batches)
+    dC_batches = np.zeros_like(UV_batches)
     __populate_conditionals(
-        U_batches, C_batches,
+        UV_batches, dC_batches,
         p_vu, keys_p_vu_v, keys_p_vu_u, 1, 0
     )
     __populate_conditionals(
-        U_batches, C_batches,
+        UV_batches, dC_batches,
         p_uv, keys_p_uv_u, keys_p_uv_v, 0, 1
     )
-    C_batches = np.clip(C_batches, 0, 1)
-    return U_batches, M_batches, C_batches, R_batches, \
+    dC_batches = np.clip(dC_batches, 0, 1)
+    return UV_batches, M_batches, dC_batches, R_batches, \
         X_batches, Y_batches
 
 
@@ -222,7 +222,7 @@ def generate_copula_net_input(
     Arguments
     ---------
     D: Tensor
-        Our dataset of (`n_dimensions`, `n_samples`)
+        Our dataset of (`2`, `n_samples`)
     bootstrap: bool
         Bootstrap input or not
     n_batches: int
@@ -236,28 +236,28 @@ def generate_copula_net_input(
     ReturnValue.NameOfTensor to get each one of the tensors
     below
 
-    U_batches: Tensor (n_batches, n_dimensions, batch_size)
+    UV_batches: Tensor (n_batches, 2, batch_size)
         The tensor that serves as input to train neural
         copulas.
-    M_batches: Tensor (n_batches, n_dimensions, batch_size)
+    M_batches: Tensor (n_batches, 2, batch_size)
         Marginal cumulative distribution functions (ecdf)
         for each dimension. When bootstrap=False, this is
-        the same as the U_batches tensor. When it is true,
+        the same as the UV_batches tensor. When it is true,
         there may be some entries with differing, but very
         close, values. This is because the M_batches always
         contains seen data, whereas U are samples when
         bootstrap=True. Thus, M will be the closest value
         to U in the dataset.
-    C_batches: Tensor (n_batches, n_dimensions, batch_size)
+    dC_batches: Tensor (n_batches, 2, batch_size)
         Conditional CDFs of the form P[U <= u | V = v] and
         P[V <= v | U = u], u and v are cdf values for each
         dimension
-    R_batches: Tensor (n_batches, n_dimensions, batch_size)
+    R_batches: Tensor (n_batches, 2, batch_size)
         Random width and heights to create rectangles where
-        the left corner is the value on U_batches.
-    X_batches: Tensor (n_batches, n_dimensions, batch_size)
+        the left corner is the value on UV_batches.
+    X_batches: Tensor (n_batches, 2, batch_size)
         Data points associated with each marginal above.
-    Y_batches: Tensor (n_batches, n_dimensions, batch_size)
+    Y_batches: Tensor (n_batches, 2, batch_size)
         The output of the neural copula. A joint cumulative
         distribution estimate of the values in `X_batches`.
     '''
@@ -287,7 +287,7 @@ def generate_copula_net_input(
 
     TrainingTensors = namedtuple(
         'TrainingTensors',
-        ['U_batches', 'M_batches', 'C_batches',
+        ['UV_batches', 'M_batches', 'dC_batches',
          'R_batches', 'X_batches', 'Y_batches']
     )
 

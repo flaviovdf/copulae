@@ -132,17 +132,17 @@ def test_cross_entropy3():
 
 def test_valid_partial():
     params = []
-    ŶC_batches = jnp.zeros((2, 2, 3))
+    ŶdC_batches = jnp.zeros((2, 2, 3))
 
-    ŶC_batches = ŶC_batches.at[0].set(
+    ŶdC_batches = ŶdC_batches.at[0].set(
         jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
     )
-    ŶC_batches = ŶC_batches.at[1].set(
+    ŶdC_batches = ŶdC_batches.at[1].set(
         jnp.array([[-1, -3, -0.001], [2.1, 3.2, 3.2]])
     )
 
     state = CopulaTrainingState(
-        ŶC_batches=ŶC_batches
+        ŶdC_batches=ŶdC_batches
     )
     loss = valid_partial(params, state)
     assert_(loss == 0.75)

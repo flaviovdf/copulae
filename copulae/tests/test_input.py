@@ -28,24 +28,24 @@ def test_generate_copula_net_input_shapes():
     InputTensors = generate_copula_net_input(
         D, n_batches=16, batch_size=8
     )
-    U_batches = InputTensors.U_batches
+    UV_batches = InputTensors.UV_batches
     M_batches = InputTensors.M_batches
-    C_batches = InputTensors.C_batches
+    dC_batches = InputTensors.dC_batches
     R_batches = InputTensors.R_batches
     X_batches = InputTensors.X_batches
     Y_batches = InputTensors.Y_batches
 
-    assert_(U_batches.shape[0] == 16)
-    assert_(U_batches.shape[1] == ndim)
-    assert_(U_batches.shape[2] == 8)
+    assert_(UV_batches.shape[0] == 16)
+    assert_(UV_batches.shape[1] == ndim)
+    assert_(UV_batches.shape[2] == 8)
 
     assert_(M_batches.shape[0] == 16)
     assert_(M_batches.shape[1] == ndim)
     assert_(M_batches.shape[2] == 8)
 
-    assert_(C_batches.shape[0] == 16)
-    assert_(C_batches.shape[1] == ndim)
-    assert_(C_batches.shape[2] == 8)
+    assert_(dC_batches.shape[0] == 16)
+    assert_(dC_batches.shape[1] == ndim)
+    assert_(dC_batches.shape[2] == 8)
 
     assert_(R_batches.shape[0] == 16)
     assert_(R_batches.shape[1] == ndim)
@@ -69,24 +69,24 @@ def test_generate_copula_net_input_shapes_noboot():
     InputTensors = generate_copula_net_input(
         D, bootstrap=False
     )
-    U_batches = InputTensors.U_batches
+    UV_batches = InputTensors.UV_batches
     M_batches = InputTensors.M_batches
-    C_batches = InputTensors.C_batches
+    dC_batches = InputTensors.dC_batches
     R_batches = InputTensors.R_batches
     X_batches = InputTensors.X_batches
     Y_batches = InputTensors.Y_batches
 
-    assert_(U_batches.shape[0] == 1)
-    assert_(U_batches.shape[1] == ndim)
-    assert_(U_batches.shape[2] == 1024)
+    assert_(UV_batches.shape[0] == 1)
+    assert_(UV_batches.shape[1] == ndim)
+    assert_(UV_batches.shape[2] == 1024)
 
     assert_(M_batches.shape[0] == 1)
     assert_(M_batches.shape[1] == ndim)
     assert_(M_batches.shape[2] == 1024)
 
-    assert_(C_batches.shape[0] == 1)
-    assert_(C_batches.shape[1] == ndim)
-    assert_(C_batches.shape[2] == 1024)
+    assert_(dC_batches.shape[0] == 1)
+    assert_(dC_batches.shape[1] == ndim)
+    assert_(dC_batches.shape[2] == 1024)
 
     assert_(R_batches.shape[0] == 1)
     assert_(R_batches.shape[1] == ndim)
@@ -113,21 +113,21 @@ def test_generate_copula_net_input_values_1():
     InputTensors = generate_copula_net_input(
         D, n_batches=16, batch_size=8
     )
-    U_batches = InputTensors.U_batches
+    UV_batches = InputTensors.UV_batches
     M_batches = InputTensors.M_batches
-    C_batches = InputTensors.C_batches
+    dC_batches = InputTensors.dC_batches
     R_batches = InputTensors.R_batches
     X_batches = InputTensors.X_batches
     Y_batches = InputTensors.Y_batches
 
-    assert_((U_batches <= 1).all())
-    assert_((U_batches >= 0).all())
+    assert_((UV_batches <= 1).all())
+    assert_((UV_batches >= 0).all())
 
     assert_((M_batches <= 1).all())
     assert_((M_batches >= 0).all())
 
-    assert_((C_batches <= 1).all())
-    assert_((C_batches >= 0).all())
+    assert_((dC_batches <= 1).all())
+    assert_((dC_batches >= 0).all())
 
     assert_((R_batches <= 1).all())
     assert_((R_batches >= 0).all())
@@ -151,21 +151,21 @@ def test_generate_copula_net_input_values_2():
     InputTensors = generate_copula_net_input(
         D, bootstrap=False
     )
-    U_batches = InputTensors.U_batches
+    UV_batches = InputTensors.UV_batches
     M_batches = InputTensors.M_batches
-    C_batches = InputTensors.C_batches
+    dC_batches = InputTensors.dC_batches
     R_batches = InputTensors.R_batches
     X_batches = InputTensors.X_batches
     Y_batches = InputTensors.Y_batches
 
-    assert_((U_batches <= 1).all())
-    assert_((U_batches >= 0).all())
+    assert_((UV_batches <= 1).all())
+    assert_((UV_batches >= 0).all())
 
     assert_((M_batches <= 1).all())
     assert_((M_batches >= 0).all())
 
-    assert_((C_batches <= 1).all())
-    assert_((C_batches >= 0).all())
+    assert_((dC_batches <= 1).all())
+    assert_((dC_batches >= 0).all())
 
     assert_((R_batches <= 1).all())
     assert_((R_batches >= 0).all())
@@ -186,11 +186,11 @@ def test_generate_copula_net_input_rectangles():
     InputTensors = generate_copula_net_input(
         D, n_batches=16, batch_size=8
     )
-    U_batches = InputTensors.U_batches
+    UV_batches = InputTensors.UV_batches
     R_batches = InputTensors.R_batches
 
-    assert_((U_batches + R_batches <= 1).all())
-    assert_((U_batches + R_batches >= 0).all())
+    assert_((UV_batches + R_batches <= 1).all())
+    assert_((UV_batches + R_batches >= 0).all())
 
 
 def test_Y_is_correct():
@@ -218,15 +218,15 @@ def test_Y_is_correct():
         batch_size=batch_size
     )
 
-    assert_(InputTensors.U_batches.shape[0] == 1)
-    assert_(InputTensors.U_batches.shape[1] == 2)
-    assert_(InputTensors.U_batches.shape[2] == 1024)
+    assert_(InputTensors.UV_batches.shape[0] == 1)
+    assert_(InputTensors.UV_batches.shape[1] == 2)
+    assert_(InputTensors.UV_batches.shape[2] == 1024)
 
     # get the expected values from the copula equation
     E_batches = np.zeros(shape=(n_batches, batch_size, 1))
     for batch_i in range(n_batches):
         Eb = gauss_copula(
-            InputTensors.U_batches[batch_i].T, mean, E
+            InputTensors.UV_batches[batch_i].T, mean, E
         ).reshape(batch_size, 1)
         E_batches[batch_i] = Eb
 
@@ -348,7 +348,7 @@ def test_closed_form_partial_large():
     def C(u, v):
         return u * v / (u + v - u * v)
 
-    UV = InputTensors.U_batches[0]
+    UV = InputTensors.UV_batches[0]
 
     Y_expected = C(UV[0], UV[1]).ravel()
     Y_emp = InputTensors.Y_batches.ravel()
@@ -359,20 +359,20 @@ def test_closed_form_partial_large():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def c(v, u):  # P[U <= v | U = u]
+    def dC(v, u):  # P[U <= v | U = u]
         return (v / (u + v - u * v)) ** 2
 
-    C_expected_vu = c(UV[1], UV[0]).ravel()
-    C_expected_uv = c(UV[0], UV[1]).ravel()
+    dC_expected_vu = dC(UV[1], UV[0]).ravel()
+    dC_expected_uv = dC(UV[0], UV[1]).ravel()
 
-    C_emp_uv = InputTensors.C_batches[:, 0, :].ravel()
-    C_emp_vu = InputTensors.C_batches[:, 1, :].ravel()
+    dC_emp_uv = InputTensors.dC_batches[:, 0, :].ravel()
+    dC_emp_vu = InputTensors.dC_batches[:, 1, :].ravel()
 
-    r, p = ss.pearsonr(C_expected_vu, C_emp_vu)
+    r, p = ss.pearsonr(dC_expected_vu, dC_emp_vu)
     assert_(r >= 0.90)
     assert_almost_equal(0.0, p, 1e-5)
 
-    r, p = ss.pearsonr(C_expected_uv, C_emp_uv)
+    r, p = ss.pearsonr(dC_expected_uv, dC_emp_uv)
     assert_(r >= 0.90)
     assert_almost_equal(0.0, p, 1e-5)
 
@@ -398,7 +398,7 @@ def test_closed_form_partial_small():
     def C(u, v):
         return u * v / (u + v - u * v)
 
-    UV = InputTensors.U_batches[0]
+    UV = InputTensors.UV_batches[0]
 
     Y_expected = C(UV[0], UV[1]).ravel()
     Y_emp = InputTensors.Y_batches.ravel()
@@ -409,19 +409,19 @@ def test_closed_form_partial_small():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def c(v, u):  # P[V <= v | U = u]
+    def dC(v, u):  # P[V <= v | U = u]
         return (v / (u + v - u * v)) ** 2
 
-    C_expected_vu = c(UV[1], UV[0]).ravel()
-    C_expected_uv = c(UV[0], UV[1]).ravel()
+    dC_expected_vu = dC(UV[1], UV[0]).ravel()
+    dC_expected_uv = dC(UV[0], UV[1]).ravel()
 
-    C_emp_uv = InputTensors.C_batches[:, 0, :].ravel()
-    C_emp_vu = InputTensors.C_batches[:, 1, :].ravel()
+    dC_emp_uv = InputTensors.dC_batches[:, 0, :].ravel()
+    dC_emp_vu = InputTensors.dC_batches[:, 1, :].ravel()
 
-    r, p = ss.pearsonr(C_expected_vu, C_emp_vu)
+    r, p = ss.pearsonr(dC_expected_vu, dC_emp_vu)
     assert_(r >= 0.9)
     assert_almost_equal(0.0, p, 1e-5)
 
-    r, p = ss.pearsonr(C_expected_uv, C_emp_uv)
+    r, p = ss.pearsonr(dC_expected_uv, dC_emp_uv)
     assert_(r >= 0.9)
     assert_almost_equal(0.0, p, 1e-5)
