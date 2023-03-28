@@ -92,7 +92,8 @@ def init_mlp(
 @jax.jit
 def mlp(
     params: PyTree,
-    U: Tensor
+    U: Tensor,
+    Or: Tensor = None
 ) -> Tensor:
     '''
     Feed-forward for a simple multi-layer neural network.
@@ -123,6 +124,14 @@ def mlp(
         that this is different from your common numpy data
         matrix where rows are examples. Here, examples are
         columns.
+
+    Or: Tensor (2d)
+        A matrix of shape: (n_dimensions, n_examples).
+        O stores the sorted indexes (argsort) of U.
+        This is pre computed for speed ups. Some methods
+        require this information.
+
+        This parameter is ignored in this network.
 
     Returns
     -------

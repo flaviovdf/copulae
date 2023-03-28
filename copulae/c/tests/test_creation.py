@@ -16,7 +16,7 @@ def test_with_mlp():
     '''Simple test for the construction'''
 
     @jax.jit
-    def forward_fun(params, U):
+    def forward_fun(params, U, _):
         W, b = params[0]
         A = jax.nn.relu(W @ U + b)
         W, b = params[1]
@@ -36,9 +36,10 @@ def test_with_mlp():
     U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
     U = U.at[0, 0].set(0.5)
     U = U.at[0, 1].set(0.5)
+    Or = U.argsort(axis=-1)
 
-    assert_(cumulative(params, U) >= 0)
-    assert_(cumulative(params, U) <= 1)
+    assert_(cumulative(params, U, Or) >= 0)
+    assert_(cumulative(params, U, Or) <= 1)
 
 
 def test_marshal_olkin():
@@ -49,7 +50,7 @@ def test_marshal_olkin():
     http://ajmaa.org/searchroot/files/pdf/v11n1/v11i1p2.pdf
     '''
     @jax.jit
-    def forward_fun(params, U):
+    def forward_fun(params, U, _):
         a1 = params[0]
         a2 = params[1]
         return jnp.minimum(
@@ -62,9 +63,10 @@ def test_marshal_olkin():
     U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
     U = U.at[0, 0].set(0.6)
     U = U.at[0, 1].set(0.2)
+    Or = U.argsort(axis=-1)
 
     assert_almost_equal(
-        density(params, U)[0, 0], 0.8521645248506244
+        density(params, U, Or)[0, 0], 0.8521645248506244
     )
 
 
@@ -84,7 +86,7 @@ def test_closed_form_partial():
     derivatives
     '''
     @jax.jit
-    def forward_fun(_, U):
+    def forward_fun(_, U, __):
         return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
 
     _, partial, _ = create_copula(forward_fun)
@@ -92,14 +94,15 @@ def test_closed_form_partial():
     U = jnp.zeros(shape=(1, 2, 1), dtype=jnp.float32)
     U = U.at[0, 0].set(0.6)
     U = U.at[0, 1].set(0.2)
+    Or = U.argsort(axis=-1)
 
     assert_almost_equal(
-        partial(params, U)[0, 0, 0],
+        partial(params, U, Or)[0, 0, 0],
         (0.6 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
     )
 
     assert_almost_equal(
-        partial(params, U)[0, 1, 0],
+        partial(params, U, Or)[0, 1, 0],
         (0.2 / (0.6 + 0.2 - 0.6 * 0.2)) ** 2
     )
 
@@ -107,20 +110,21 @@ def test_closed_form_partial():
 def test_partial_shape():
     '''The shape of the partial is (batches, dim, elems)'''
     @jax.jit
-    def forward_fun(_, U):
+    def forward_fun(_, U, __):
         return (U[0] * U[1]) / (U[0] + U[1] - U[0] * U[1])
 
     _, partial, _ = create_copula(forward_fun)
     params = jnp.array([])
     U = jnp.zeros(shape=(3, 2, 5), dtype=jnp.float32) + 0.1
-    assert_equal((3, 2, 5), partial(params, U).shape)
+    Or = U.argsort(axis=-1)
+    assert_equal((3, 2, 5), partial(params, U, Or).shape)
 
 
 def test_density_shape():
     '''The shape of the density must be batches by elem'''
 
     @jax.jit
-    def forward_fun(params, U):
+    def forward_fun(params, U, _):
         W, b = params[0]
         A = jax.nn.relu(W @ U + b)
         W, b = params[1]
@@ -138,5 +142,6 @@ def test_density_shape():
     params.append((weights, bias))
 
     U = jnp.ones(shape=(6, 2, 12), dtype=jnp.float32)
+    Or = U.argsort(axis=-1)
 
-    assert_equal((6, 12), density(params, U).shape)
+    assert_equal((6, 12), density(params, U, Or).shape)
