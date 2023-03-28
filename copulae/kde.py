@@ -87,7 +87,7 @@ def kde_pdf(
 def kde_cdf(
     x: Tensor,
     bandwidth: float
-) -> jnp.ndarray:
+) -> Tensor:
     '''
     Computes a Gaussian KDE estimate of the cumulative
     density function (cdf) for the given dataset.

@@ -84,7 +84,6 @@ def setup_training(
     cumulative, partial, density = create_copula(net)
     losses = losses.copy()
 
-    @jax.jit
     def forward(
         params: PyTree,
         state: CopulaTrainingState
