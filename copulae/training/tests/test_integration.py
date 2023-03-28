@@ -41,6 +41,114 @@ import jax
 import numpy as np
 
 
+def test_shapes():
+    np.random.seed(30091985)
+
+    # generate some points according to
+    # example 2.20 of "An introduction to copulas"
+    us = np.random.uniform(0, 1, size=(500, ))
+    ts = np.random.uniform(0, 1, size=(500, ))
+    vs = us * np.sqrt(ts) / (1 - (1 - us) * np.sqrt(ts))
+
+    d0 = 2 * us - 1
+    d1 = -np.log(1 - vs)
+
+    D = np.array([d0, d1])
+
+    TrainingTensors = generate_copula_net_input(
+        D=D,
+        bootstrap=False
+    )
+
+    losses = [
+        (1, cross_entropy),
+    ]
+
+    nn_C, nn_dC, nn_c, cop_state, forward, grad = \
+        setup_training(mlp, TrainingTensors, losses)
+
+    key = jax.random.PRNGKey(30091985)
+    key, subkey = jax.random.split(key)
+    init_params = init_mlp(subkey, 2, 2, 2, b_init=0)
+
+    assert_(nn_C(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 500, 1))
+    assert_(nn_dC(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 2, 500))
+    assert_(nn_c(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 500))
+
+
+def test_shapes_jax():
+    np.random.seed(30091985)
+
+    # generate some points according to
+    # example 2.20 of "An introduction to copulas"
+    us = np.random.uniform(0, 1, size=(500, ))
+    ts = np.random.uniform(0, 1, size=(500, ))
+    vs = us * np.sqrt(ts) / (1 - (1 - us) * np.sqrt(ts))
+
+    d0 = 2 * us - 1
+    d1 = -np.log(1 - vs)
+
+    D = np.array([d0, d1])
+
+    TrainingTensors = generate_copula_net_input(
+        D=D,
+        bootstrap=False
+    )
+
+    losses = [
+        (1, cross_entropy),
+    ]
+
+    class MLP(nn.Module):
+        layers: Sequence[int]
+
+        @nn.compact
+        def __call__(self, U: Tensor) -> Tensor:
+            a = U.T
+            for layer_width in self.layers[:-1]:
+                z = nn.Dense(layer_width)(a)
+                a = nn.relu(z)
+            return nn.Dense(self.layers[-1])(a)
+
+    class SingleLogit(nn.Module):
+        base: MLP
+
+        @nn.compact
+        def __call__(self, U: Tensor, _: Tensor) -> Tensor:
+            return jax.nn.sigmoid(
+                nn.Dense(1)(self.base(U))
+            )
+
+    model = SingleLogit(MLP([2, 2]))
+    nn_C, nn_dC, nn_c, cop_state, forward, grad = \
+        setup_training(model, TrainingTensors, losses)
+
+    key = jax.random.PRNGKey(30091985)
+    key, subkey = jax.random.split(key)
+
+    init_params = model.init(
+        subkey,
+        cop_state.UV_batches[0],
+        cop_state.Or_batches[0]
+    )
+
+    assert_(nn_C(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 500, 1))
+    assert_(nn_dC(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 2, 500))
+    assert_(nn_c(init_params,
+            cop_state.UV_batches,
+            cop_state.Or_batches).shape == (1, 500))
+
+
 def test_if_looses_are_considered():
     '''
     Simply test if our losses are considered in
