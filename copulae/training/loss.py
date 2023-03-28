@@ -359,8 +359,8 @@ def frechet(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    L = jnp.clip(state.U_batches.sum(axis=1) - 1, 0, 1)
-    R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
+    L = jnp.clip(state.UV_batches.sum(axis=1) - 1, 0, 1)
+    R = jnp.clip(jnp.min(state.UV_batches, axis=1), 0, 1)
 
     # same dim as L, and R
     Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)
@@ -402,8 +402,8 @@ def sq_frechet(
     -------
     Tensor of size (1, 1) with the loss
     '''
-    L = jnp.clip(state.U_batches.sum(axis=1) - 1, 0, 1)
-    R = jnp.clip(jnp.min(state.U_batches, axis=1), 0, 1)
+    L = jnp.clip(state.UV_batches.sum(axis=1) - 1, 0, 1)
+    R = jnp.clip(jnp.min(state.UV_batches, axis=1), 0, 1)
 
     # same dim as L, and R
     Ŷ = jnp.clip(state.ŶC_batches, 0, 1).squeeze(-1)

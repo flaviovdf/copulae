@@ -272,18 +272,18 @@ def test_copula_likelihood():
 def test_frechet1():
     params = []
 
-    U_batches = jnp.zeros((2, 2, 3))
+    UV_batches = jnp.zeros((2, 2, 3))
     ŶC_batches = jnp.zeros((2, 3, 1))
 
     # max: 0, 0, 0.2
     # min: 0.1, 0.2, 0.6
-    U_batches = U_batches.at[0].set(
+    UV_batches = UV_batches.at[0].set(
         jnp.array([[0.1, 0.2, 0.6], [0.4, 0.5, 0.6]])
     )
 
     # max: 0.2, 0, 0
     # min: 0.4, 0.2, 0.3
-    U_batches = U_batches.at[1].set(
+    UV_batches = UV_batches.at[1].set(
         jnp.array([[0.8, 0.2, 0.3], [0.4, 0.5, 0.6]])
     )
 
@@ -295,7 +295,7 @@ def test_frechet1():
     )
 
     state = CopulaTrainingState(
-        U_batches=U_batches,
+        UV_batches=UV_batches,
         ŶC_batches=ŶC_batches
     )
 

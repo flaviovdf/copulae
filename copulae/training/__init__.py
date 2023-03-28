@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 
+from copulae.c import CopulaType
 from copulae.c import create_copula
 
 from copulae.kde import silvermans_method
@@ -26,7 +27,8 @@ import jax.numpy as jnp
 CopulaTrainingState = namedtuple(
     'CopulaTrainingState',
     [
-        'U_batches',    # the input of the neural copula
+        'UV_batches',   # the input of the neural copula
+        'Or_batches',   # an argsort on UV
         'M_batches',    # the marginal CDFs of the copula
         'X_batches',    # data points associated with U
         'R_batches',    # a random rectangle around U
@@ -46,6 +48,8 @@ CopulaTrainingState = namedtuple(
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
+
+        jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
 
         jnp.zeros((1, 1, 1)),
@@ -58,22 +62,22 @@ CopulaTrainingState = namedtuple(
 
 
 def setup_training(
-    forward_fun: Callable,
+    forward_fun: CopulaType,
     TrainingTensors: Tuple[Tensor, Tensor, Tensor, Tensor,
                            Tensor, Tensor],
     losses: Sequence[Tuple[float, Callable]]
 ):
 
-    U_batches = TrainingTensors.U_batches
+    UV_batches = TrainingTensors.UV_batches
     M_batches = TrainingTensors.M_batches
-    R_batches = TrainingTensors.R_batches
     X_batches = TrainingTensors.X_batches
+    R_batches = TrainingTensors.R_batches
     YdC_batches = TrainingTensors.YdC_batches
     YC_batches = TrainingTensors.YC_batches
 
     if isinstance(forward_fun, flax.linen.Module):
-        def net(params, U):
-            return forward_fun.apply(params, U)
+        def net(params, U, Or):
+            return forward_fun.apply(params, U, Or)
     else:
         net = forward_fun
 
@@ -85,17 +89,24 @@ def setup_training(
         params: PyTree,
         state: CopulaTrainingState
     ):
-        ŶC_batches = cumulative(params, state.U_batches)
-        ŶdC_batches = partial(params, state.M_batches)
-        Ŷc_batches = density(params, state.M_batches)
+        ŶC_batches = cumulative(
+            params, state.UV_batches, state.Or_batches
+        )
+        ŶdC_batches = partial(
+            params, state.UV_batches, state.Or_batches
+        )
+        Ŷc_batches = density(
+            params, state.UV_batches, state.Or_batches
+        )
 
         new_state = CopulaTrainingState(
-            U_batches=state.U_batches,
-            M_batches=state.M_batches,
+            UV_batches=state.UV_batches,
+            Or_batches=state.Or_batches,
             X_batches=state.X_batches,
+            M_batches=state.M_batches,
             R_batches=state.R_batches,
-            C_batches=state.YdC_batches,
-            Y_batches=state.YC_batches,
+            YdC_batches=state.YdC_batches,
+            YC_batches=state.YC_batches,
 
             ŶC_batches=ŶC_batches,
             ŶdC_batches=ŶdC_batches,
@@ -109,9 +120,9 @@ def setup_training(
             loss += w * loss_func(params, new_state)
         return loss[0], new_state
 
-    U_flat = U_batches.reshape(
-        U_batches.shape[1],
-        U_batches.shape[0] * U_batches.shape[2]
+    U_flat = UV_batches.reshape(
+        UV_batches.shape[1],
+        UV_batches.shape[0] * UV_batches.shape[2]
     )
 
     n = U_flat.shape[1]
@@ -120,11 +131,12 @@ def setup_training(
     for dim in range(U_flat.shape[0]):
         independence_pdf *= kde_pdf(U_flat[dim], bw)
     I_pdf = independence_pdf.reshape(
-        U_batches.shape[0], U_batches.shape[2]
+        UV_batches.shape[0], UV_batches.shape[2]
     )
 
     state = CopulaTrainingState(
-        U_batches=U_batches,
+        UV_batches=UV_batches,
+        Or_batches=UV_batches.argsort(axis=-1),
         M_batches=M_batches,
         X_batches=X_batches,
         R_batches=R_batches,
