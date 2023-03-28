@@ -10,6 +10,7 @@ network defined in [1].
 
 
 from copulae.typing import Tensor
+from copulae.typing import PRNGKey
 from copulae.typing import PyTree
 
 
@@ -18,7 +19,7 @@ import jax.numpy as jnp
 
 
 def init_sill(
-    key: jax.random.PRNGKey,
+    key: PRNGKey,
     input_size: int,
     n_layers: int,
     layer_width: int,

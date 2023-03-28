@@ -5,12 +5,21 @@
 from copulae.training import CopulaTrainingState
 
 from copulae.training.loss import cross_entropy
+from copulae.training.loss import cross_entropy_partial
+from copulae.training.loss import copula_likelihood
 from copulae.training.loss import frechet
 from copulae.training.loss import jsd
+from copulae.training.loss import jsd_partial
 from copulae.training.loss import l1
 from copulae.training.loss import l2
+from copulae.training.loss import sq_error
+from copulae.training.loss import sq_error_partial
+from copulae.training.loss import sq_frechet
+from copulae.training.loss import sq_valid_density
+from copulae.training.loss import sq_valid_partial
 from copulae.training.loss import valid_density
 from copulae.training.loss import valid_partial
+
 
 from numpy.testing import assert_
 from numpy.testing import assert_almost_equal
@@ -48,6 +57,20 @@ def test_l2():
     state = CopulaTrainingState()
     loss = l2(params, state)
     assert_(loss == 22)
+
+
+def test_sq_error():
+    params = []
+
+    Y = jnp.array([0, 1, 0]).reshape((1, 3, 1))
+    Ŷ = jnp.array([0.1, 0.0, 0.0]).reshape((1, 3, 1))
+
+    state = CopulaTrainingState(
+        YC_batches=Y,
+        ŶC_batches=Ŷ
+    )
+    loss = sq_error(params, state)
+    assert_(loss > 0)
 
 
 def test_jsd():
@@ -147,6 +170,63 @@ def test_valid_partial():
     loss = valid_partial(params, state)
     assert_(loss == 0.75)
 
+    loss = sq_valid_partial(params, state)
+    assert_(loss > 0)
+
+
+def test_cross_entropy_partial():
+    params = []
+    ŶdC_batches = jnp.zeros((2, 2, 3))
+
+    ŶdC_batches = ŶdC_batches.at[0].set(
+        jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
+    )
+    ŶdC_batches = ŶdC_batches.at[1].set(
+        jnp.array([[-1, -3, -0.001], [2.1, 3.2, 3.2]])
+    )
+
+    state = CopulaTrainingState(
+        ŶdC_batches=ŶdC_batches
+    )
+    loss = cross_entropy_partial(params, state)
+    assert_(loss > 0)
+
+
+def test_jsd_partial():
+    params = []
+    ŶdC_batches = jnp.zeros((2, 2, 3))
+
+    ŶdC_batches = ŶdC_batches.at[0].set(
+        jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
+    )
+    ŶdC_batches = ŶdC_batches.at[1].set(
+        jnp.array([[-1, -3, -0.001], [2.1, 3.2, 3.2]])
+    )
+
+    state = CopulaTrainingState(
+        ŶdC_batches=ŶdC_batches
+    )
+    loss = jsd_partial(params, state)
+    assert_(loss > 0)
+
+
+def test_sq_error_partial():
+    params = []
+    ŶdC_batches = jnp.zeros((2, 2, 3))
+
+    ŶdC_batches = ŶdC_batches.at[0].set(
+        jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
+    )
+    ŶdC_batches = ŶdC_batches.at[1].set(
+        jnp.array([[-1, -3, -0.001], [2.1, 3.2, 3.2]])
+    )
+
+    state = CopulaTrainingState(
+        ŶdC_batches=ŶdC_batches
+    )
+    loss = sq_error_partial(params, state)
+    assert_(loss > 0)
+
 
 def test_valid_density():
     params = []
@@ -165,6 +245,28 @@ def test_valid_density():
     )
     loss = valid_density(params, state)
     assert_(loss == 2.0 / 12)
+
+    loss = sq_valid_density(params, state)
+    assert_(loss > 0)
+
+
+def test_copula_likelihood():
+    params = []
+
+    Ŷc_batches = jnp.zeros((2, 2, 3))
+
+    Ŷc_batches = Ŷc_batches.at[0].set(
+        jnp.array([[1.1, 0.2, 3.3], [0, -7, 0]])
+    )
+    Ŷc_batches = Ŷc_batches.at[1].set(
+        jnp.array([[0, -3, 0], [2.1, 0.9, 3.2]])
+    )
+
+    state = CopulaTrainingState(
+        Ŷc_batches=Ŷc_batches
+    )
+    loss = copula_likelihood(params, state)
+    assert_(loss > 0)
 
 
 def test_frechet1():
@@ -199,3 +301,6 @@ def test_frechet1():
 
     loss = frechet(params, state)
     assert_almost_equal(loss, 5 / 6)
+
+    loss = sq_frechet(params, state)
+    assert_(loss > 0)
