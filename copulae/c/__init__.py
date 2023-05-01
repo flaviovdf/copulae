@@ -34,7 +34,7 @@ def create_copula(
     Arguments
     ---------
 
-    forward_fun: Callable(PyTree, Tensor, Tensor) -> Tensor
+    forward_fun: Callable(PyTree, Tensor) -> Tensor
         The forward function of the neural network that
         will mimic the Copula.
 
@@ -50,34 +50,31 @@ def create_copula(
     def C(
         params: PyTree,
         U: Tensor,
-        Or: Tensor
     ) -> Tensor:
-        return forward_fun(params, U, Or)
+        return forward_fun(params, U)
 
     batched_C = jax.vmap(
         C,
-        in_axes=(None, 0, 0),
+        in_axes=(None, 0),
         out_axes=0
     )
 
     @jax.jit
     def partial_c(
         params: PyTree,
-        U: Tensor,
-        Or: Tensor
+        U: Tensor
     ) -> Tensor:
-        def j(params, u, o):
+        def j(params, u):
             u = jnp.atleast_2d(u).T
-            o = jnp.atleast_2d(o).T
             jacobian = jax.jacobian(
                 C, argnums=1
             )(
-                params, u, o
+                params, u
             ).squeeze()
             return jacobian
         aux = jnp.swapaxes(
-            jax.vmap(j, in_axes=(None, 1, 1))(
-                params, U, Or
+            jax.vmap(j, in_axes=(None, 1))(
+                params, U
             ),
             -2, -1
         )
@@ -88,33 +85,31 @@ def create_copula(
 
     batched_partial_c = jax.vmap(
         partial_c,
-        in_axes=(None, 0, 0),
+        in_axes=(None, 0),
         out_axes=0
     )
 
     @jax.jit
     def c(
         params: PyTree,
-        U: Tensor,
-        Or: Tensor
+        U: Tensor
     ) -> Tensor:
-        def h(params, u, o):
+        def h(params, u):
             hessian = jax.hessian(
                 C,
                 argnums=1
             )(
                 params,
                 jnp.atleast_2d(u).T,
-                jnp.atleast_2d(o).T
             ).ravel()[-2]
             return hessian
-        return jax.vmap(h, in_axes=(None, 1, 1))(
-            params, U, Or
+        return jax.vmap(h, in_axes=(None, 1))(
+            params, U
         )
 
     batched_c = jax.vmap(
         c,
-        in_axes=(None, 0, 0),
+        in_axes=(None, 0),
         out_axes=0
     )
 

@@ -28,7 +28,6 @@ CopulaTrainingState = namedtuple(
     'CopulaTrainingState',
     [
         'UV_batches',   # the input of the neural copula
-        'Or_batches',   # an argsort on UV
         'M_batches',    # the marginal CDFs of the copula
         'X_batches',    # data points associated with U
         'R_batches',    # a random rectangle around U
@@ -43,7 +42,6 @@ CopulaTrainingState = namedtuple(
         'I_pdf'         # the product of the marginal pdfs
     ],
     defaults=[
-        jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
         jnp.zeros((1, 1, 1)),
@@ -76,13 +74,12 @@ def setup_training(
     YC_batches = TrainingTensors.YC_batches
 
     if isinstance(forward_fun, flax.linen.Module):
-        def net(params, U, Or):
-            return forward_fun.apply(params, U, Or)
+        def net(params, U):
+            return forward_fun.apply(params, U)
     else:
         net = forward_fun
 
     cumulative, partial, density = create_copula(net)
-    losses = losses.copy()
 
     @jax.jit
     def forward(
@@ -90,18 +87,17 @@ def setup_training(
         state: CopulaTrainingState
     ):
         ŶC_batches = cumulative(
-            params, state.UV_batches, state.Or_batches
+            params, state.UV_batches
         )
         ŶdC_batches = partial(
-            params, state.UV_batches, state.Or_batches
+            params, state.UV_batches
         )
         Ŷc_batches = density(
-            params, state.UV_batches, state.Or_batches
+            params, state.UV_batches
         )
 
         new_state = CopulaTrainingState(
             UV_batches=state.UV_batches,
-            Or_batches=state.Or_batches,
             X_batches=state.X_batches,
             M_batches=state.M_batches,
             R_batches=state.R_batches,
@@ -136,7 +132,6 @@ def setup_training(
 
     state = CopulaTrainingState(
         UV_batches=UV_batches,
-        Or_batches=UV_batches.argsort(axis=-1),
         M_batches=M_batches,
         X_batches=X_batches,
         R_batches=R_batches,

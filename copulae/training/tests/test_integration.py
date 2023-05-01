@@ -72,17 +72,14 @@ def test_shapes():
     init_params = init_mlp(subkey, 2, 2, 2, b_init=0)
 
     assert_(nn_C(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 500, 1))
+            cop_state.UV_batches).shape == (1, 500, 1))
     assert_(nn_dC(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 2, 500))
+            cop_state.UV_batches).shape == (1, 2, 500))
     assert_(nn_c(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 500))
+            cop_state.UV_batches).shape == (1, 500))
 
 
-def test_shapes_jax():
+def test_shapes_flax():
     np.random.seed(30091985)
 
     # generate some points according to
@@ -120,7 +117,7 @@ def test_shapes_jax():
         base: MLP
 
         @nn.compact
-        def __call__(self, U: Tensor, _: Tensor) -> Tensor:
+        def __call__(self, U: Tensor) -> Tensor:
             return jax.nn.sigmoid(
                 nn.Dense(1)(self.base(U))
             )
@@ -134,19 +131,15 @@ def test_shapes_jax():
 
     init_params = model.init(
         subkey,
-        cop_state.UV_batches[0],
-        cop_state.Or_batches[0]
+        cop_state.UV_batches[0]
     )
 
     assert_(nn_C(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 500, 1))
+            cop_state.UV_batches).shape == (1, 500, 1))
     assert_(nn_dC(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 2, 500))
+            cop_state.UV_batches).shape == (1, 2, 500))
     assert_(nn_c(init_params,
-            cop_state.UV_batches,
-            cop_state.Or_batches).shape == (1, 500))
+            cop_state.UV_batches).shape == (1, 500))
 
 
 def test_if_looses_are_considered():
@@ -215,10 +208,6 @@ def test_if_looses_are_considered_w_flax():
     Simply test if our losses are considered in
     the training loop
     '''
-    '''
-    Simply test if our losses are considered in
-    the training loop
-    '''
 
     np.random.seed(30091985)
 
@@ -269,7 +258,7 @@ def test_if_looses_are_considered_w_flax():
         base: MLP
 
         @nn.compact
-        def __call__(self, U: Tensor, _: Tensor) -> Tensor:
+        def __call__(self, U: Tensor) -> Tensor:
             return jax.nn.sigmoid(
                 nn.Dense(1)(self.base(U))
             )
@@ -283,8 +272,7 @@ def test_if_looses_are_considered_w_flax():
 
     init_params = model.init(
         subkey,
-        cop_state.UV_batches[0],
-        cop_state.Or_batches[0]
+        cop_state.UV_batches[0]
     )
 
     _, _, _, _, forward2, _ = \
