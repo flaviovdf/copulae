@@ -155,7 +155,7 @@ class SiamesePositiveBiLogitCopula(nn.Module):
     def __call__(self, U: Tensor) -> Tensor:
         z0 = integrate_and_set(U[0], self.left(U).ravel())
         z1 = integrate_and_set(U[1], self.right(U).ravel())
-        return FlexibleBi(z0, z1)
+        return FlexibleBi()(z0, z1)
 
 
 class PositiveBiLogitCopula(nn.Module):
@@ -166,4 +166,4 @@ class PositiveBiLogitCopula(nn.Module):
         z_aux = self.base(U).ravel()
         z0 = integrate_and_set(U[0], z_aux)
         z1 = integrate_and_set(U[1], z_aux)
-        return FlexibleBi(z0, z1)
+        return FlexibleBi()(z0, z1)
