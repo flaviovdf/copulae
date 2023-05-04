@@ -1,15 +1,12 @@
 # -*- coding: utf8 -*-
-'''
-Code regarding neural networks which are guaranteed to
-generate monotonic outputs. Here, we implement the
-network defined in [1].
 
-[1] Monotonic Networks. Joseph Sill. NeuRIPS 1997.
-'''
+
+from copulae.training.cflax.mono_aux import ELUPlusOne
+from copulae.training.cflax.mono_aux import \
+    integrate_and_set
 
 
 from copulae.typing import Tensor
-from copulae.typing import Sequence
 
 
 import flax.linen as nn
@@ -17,28 +14,6 @@ import flax.linen as nn
 
 import jax
 import jax.numpy as jnp
-
-
-class MLP(nn.Module):
-    layers: Sequence[int]
-
-    @nn.compact
-    def __call__(self, U: Tensor) -> Tensor:
-        a = jnp.clip(U.T, 0, 1)
-        for layer_width in self.layers[:-1]:
-            z = nn.Dense(layer_width)(a)
-            a = nn.relu(z)
-        return nn.Dense(self.layers[-1])(a)
-
-
-class SingleLogitCopula(nn.Module):
-    base: MLP
-
-    @nn.compact
-    def __call__(self, U: Tensor) -> Tensor:
-        return jax.nn.sigmoid(
-            nn.Dense(1)(self.base(U))
-        )
 
 
 @jax.jit
@@ -112,39 +87,6 @@ class FlexibleBi(nn.Module):
         return flexible_bi(
             z0, z1, m0, m1, s0, s1, a, theta
         )
-
-
-@jax.jit
-def cumtrapz(u: Tensor, z: Tensor) -> Tensor:
-    # u and z must be ordered according to u
-
-    d = jnp.diff(u, prepend=0)
-    s = jnp.zeros(d.shape[0], dtype=jnp.float32)
-    s = s.at[0].set(z[0])
-    s = s.at[1:].set(z[1:] + z[:-1])
-    return (d * s / 2.0).cumsum()
-
-
-@jax.jit
-def integrate_and_set(u: Tensor, z: Tensor) -> Tensor:
-    idx = u.argsort()
-    u_sorted = u[idx]
-    ct = cumtrapz(u_sorted, z[idx])
-    reverse_idx = jnp.searchsorted(u_sorted, u)
-    return ct[reverse_idx]
-
-
-class ELUPlusOne(nn.Module):
-    layers: Sequence[int]
-
-    @nn.compact
-    def __call__(self, U: Tensor) -> Tensor:
-        a = jnp.clip(U.T, 0, 1)
-        for layer_width in self.layers:
-            z = nn.Dense(layer_width)(a)
-            a = nn.elu(z) + 1
-        z = nn.Dense(1)(a)
-        return nn.elu(z) + 1
 
 
 class SiamesePositiveBiLogitCopula(nn.Module):
