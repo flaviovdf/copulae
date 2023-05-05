@@ -47,11 +47,6 @@ def case1(p, q, rho, a, b):
 
 
 @jax.jit
-def case2(p, q):
-    return cdf1d(p) * cdf1d(q)
-
-
-@jax.jit
 def case3(p, q, rho, a, b):
     c1 = -1.0950081470333
     c2 = -0.75651138383854
@@ -115,46 +110,49 @@ def case5(p, q, rho, a, b):
     return line11 - (line12 * line21) + line22 * (line31 + line32)  # noqa: E501
 
 
+@jax.jit
 def binorm(p, q, rho):
-    if rho == 0:
-        return case2(p, q)
+    def case45(p, q, rho, a, b):
+        # (a < 0) & ((a * q + b) >= 0)
+        is_case_4 = jnp.logical_and(
+            jnp.less(a, 0), jnp.greater_equal(a * q + b, 0)
+        )
+        return jax.lax.cond(is_case_4,
+                            case4,
+                            case5,
+                            p, q, rho, a, b)
 
-    p = jnp.asarray(jnp.atleast_1d(p), dtype=jnp.float32)
-    q = jnp.asarray(jnp.atleast_1d(q), dtype=jnp.float32)
+    def case345(p, q, rho, a, b):
+        # (a > 0) & ((a * q + b) < 0)
+        is_case_3 = jnp.logical_and(
+            jnp.greater(a, 0), jnp.less(a * q + b, 0)
+        )
+        return jax.lax.cond(is_case_3,
+                            case3,
+                            case45,
+                            p, q, rho, a, b)
 
-    a = -rho / jnp.sqrt(1 - rho * rho)
-    b = p / jnp.sqrt(1 - rho * rho)
+    def case1345(p, q, rho):
+        a = -rho / jnp.sqrt(1 - rho * rho)
+        b = p / jnp.sqrt(1 - rho * rho)
 
-    idx_1 = jnp.where(
-        (a > 0) & ((a * q + b) >= 0),
-    )
+        # (a > 0) & ((a * q + b) >= 0)
+        is_case_1 = jnp.logical_and(
+            jnp.greater(a, 0),
+            jnp.greater_equal(a * q + b, 0)
+        )
+        return jax.lax.cond(is_case_1,
+                            case1,
+                            case345,
+                            p, q, rho, a, b)
 
-    idx_3 = jnp.where(
-        (a > 0) & ((a * q + b) < 0),
-    )
+    return jax.lax.cond(
+        rho == 0, lambda p, q, rho: cdf1d(p) * cdf1d(q),
+        case1345,
+        p, q, rho)
 
-    idx_4 = jnp.where(
-        (a < 0) & ((a * q + b) >= 0),
-    )
 
-    idx_5 = jnp.where(
-        (a < 0) & ((a * q + b) < 0),
-    )
-
-    rv = jnp.zeros_like(p)
-    rv = rv.at[idx_1].set(
-        case1(p[idx_1], q[idx_1], rho, a, b[idx_1])
-    )
-    rv = rv.at[idx_3].set(
-        case3(p[idx_3], q[idx_3], rho, a, b[idx_3])
-    )
-    rv = rv.at[idx_4].set(
-        case4(p[idx_4], q[idx_4], rho, a, b[idx_4])
-    )
-    rv = rv.at[idx_5].set(
-        case5(p[idx_5], q[idx_5], rho, a, b[idx_5])
-    )
-    return rv
+vbinorm = jax.vmap(binorm, in_axes=(0, 0, None))
 
 
 class NormalBi(nn.Module):
@@ -167,12 +165,12 @@ class NormalBi(nn.Module):
         mu1 = jnp.mean(z1)
         s1 = jnp.std(z1, ddof=1)
 
-        rho = jnp.corrcoef(z0, z1)
+        rho = jnp.corrcoef(z0, z1)[0]
 
         p = (z0 - mu0) / s0
         q = (z1 - mu1) / s1
 
-        return binorm(p, q, rho)
+        return vbinorm(p, q, rho)
 
 
 class SiamesePositiveBiNormalCopula(nn.Module):
