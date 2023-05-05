@@ -116,23 +116,45 @@ def case5(p, q, rho, a, b):
 
 
 def binorm(p, q, rho):
+    if rho == 0:
+        return case2(p, q)
+
+    p = jnp.asarray(jnp.atleast_1d(p), dtype=jnp.float32)
+    q = jnp.asarray(jnp.atleast_1d(q), dtype=jnp.float32)
+
     a = -rho / jnp.sqrt(1 - rho * rho)
     b = p / jnp.sqrt(1 - rho * rho)
 
-    if a > 0 and a * q + b >= 0:
-        return case1(p, q, rho, a, b)
+    idx_1 = jnp.where(
+        (a > 0) & ((a * q + b) >= 0),
+    )
 
-    if a == 0:
-        return case2(p, q)
+    idx_3 = jnp.where(
+        (a > 0) & ((a * q + b) < 0),
+    )
 
-    if a > 0 and a * q + b < 0:
-        return case3(p, q, rho, a, b)
+    idx_4 = jnp.where(
+        (a < 0) & ((a * q + b) >= 0),
+    )
 
-    if a < 0 and a * q + b >= 0:
-        return case4(p, q, rho, a, b)
+    idx_5 = jnp.where(
+        (a < 0) & ((a * q + b) < 0),
+    )
 
-    if a < 0 and a * q + b < 0:
-        return case5(p, q, rho, a, b)
+    rv = jnp.zeros_like(p)
+    rv = rv.at[idx_1].set(
+        case1(p[idx_1], q[idx_1], rho, a, b[idx_1])
+    )
+    rv = rv.at[idx_3].set(
+        case3(p[idx_3], q[idx_3], rho, a, b[idx_3])
+    )
+    rv = rv.at[idx_4].set(
+        case4(p[idx_4], q[idx_4], rho, a, b[idx_4])
+    )
+    rv = rv.at[idx_5].set(
+        case5(p[idx_5], q[idx_5], rho, a, b[idx_5])
+    )
+    return rv
 
 
 class NormalBi(nn.Module):
@@ -150,9 +172,7 @@ class NormalBi(nn.Module):
         p = (z0 - mu0) / s0
         q = (z1 - mu1) / s1
 
-        return jax.vmap(
-            binorm, in_axes=(0, 0, None)
-        )(p, q, rho)
+        return binorm(p, q, rho)
 
 
 class SiamesePositiveBiNormalCopula(nn.Module):
