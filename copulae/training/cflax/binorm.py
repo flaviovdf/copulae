@@ -165,10 +165,17 @@ class NormalBi(nn.Module):
         mu1 = jnp.mean(z1)
         s1 = jnp.std(z1, ddof=1)
 
-        rho = jnp.corrcoef(z0, z1)[0, 1]
+        # rho = jnp.corrcoef(z0, z1)[0, 1]
 
         p = (z0 - mu0) / s0
         q = (z1 - mu1) / s1
+
+        rho_x = self.param(
+            'rho_x',
+            jax.nn.initializers.constant(0.0),
+            (1, 1)
+        )
+        rho = jnp.clip(jax.nn.tanh(rho_x), -0.9999, 0.9999)
 
         return vbinorm(p, q, rho)
 
