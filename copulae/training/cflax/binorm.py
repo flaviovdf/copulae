@@ -147,7 +147,7 @@ def binorm(p, q, rho):
                             p, q, rho, a, b)
 
     return jax.lax.cond(
-        rho == 0, lambda p, q, rho: cdf1d(p) * cdf1d(q),
+        rho == 0, lambda p, q, _: cdf1d(p) * cdf1d(q),
         case1345,
         p, q, rho)
 
@@ -165,7 +165,7 @@ class NormalBi(nn.Module):
         mu1 = jnp.mean(z1)
         s1 = jnp.std(z1, ddof=1)
 
-        rho = jnp.corrcoef(z0, z1)[0]
+        rho = jnp.corrcoef(z0, z1)[0, 1]
 
         p = (z0 - mu0) / s0
         q = (z1 - mu1) / s1
