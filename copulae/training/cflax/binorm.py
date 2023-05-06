@@ -174,7 +174,7 @@ class NormalBi(nn.Module):
             'rho_x',
             jax.nn.initializers.constant(0.0),
             (1, 1)
-        )
+        )[0, 0]
         rho = jnp.clip(jax.nn.tanh(rho_x), -0.9999, 0.9999)
 
         return vbinorm(p, q, rho)
