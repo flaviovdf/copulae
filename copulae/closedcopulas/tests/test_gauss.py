@@ -1,8 +1,8 @@
 # -*- coding: utf8 -*-
-'''Unit tests for the utilities module'''
+'''Unit tests for the gaussian copula'''
 
 
-from copulae.utils import gauss_copula
+from copulae.closedcopulas.gauss import C
 
 from numpy.testing import assert_array_almost_equal
 
@@ -28,4 +28,4 @@ def test_gausscopula():
 
     u = jnp.array([0.25, 0.5])
     assert_array_almost_equal(cdf1 * cdf2,
-                              gauss_copula(u, mean, cov))
+                              C(u, mean, cov))

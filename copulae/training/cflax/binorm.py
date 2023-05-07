@@ -159,16 +159,42 @@ class NormalBi(nn.Module):
 
     @nn.compact
     def __call__(self, z0: Tensor, z1: Tensor) -> Tensor:
-        mu0 = jnp.mean(z0)
-        s0 = jnp.std(z0, ddof=1)
+        m0 = self.param(
+            'm0',
+            jax.nn.initializers.constant(0.0),
+            (1, 1)
+        )[0, 0]
+        m1 = self.param(
+            'm1',
+            jax.nn.initializers.constant(0.0),
+            (1, 1)
+        )[0, 0]
 
-        mu1 = jnp.mean(z1)
-        s1 = jnp.std(z1, ddof=1)
+        s0 = self.param(
+            's0',
+            jax.nn.initializers.constant(1.0),
+            (1, 1)
+        )[0, 0]
+        s1 = self.param(
+            's1',
+            jax.nn.initializers.constant(1.0),
+            (1, 1)
+        )[0, 0]
+        # deviations are always positive
+        s0 = jnp.sqrt(s0 * s0)
+        s1 = jnp.sqrt(s1 * s1)
+        # mu0 = jnp.mean(z0)
+        # s0 = jnp.std(z0, ddof=1)
+
+        # mu1 = jnp.mean(z1)
+        # s1 = jnp.std(z1, ddof=1)
 
         # rho = jnp.corrcoef(z0, z1)[0, 1]
 
-        p = (z0 - mu0) / s0
-        q = (z1 - mu1) / s1
+        p = (z0 - m0) / s0
+        q = (z1 - m1) / s1
+        # p = z0
+        # q = z1
 
         rho_x = self.param(
             'rho_x',
@@ -176,6 +202,7 @@ class NormalBi(nn.Module):
             (1, 1)
         )[0, 0]
         rho = jnp.clip(jax.nn.tanh(rho_x), -0.9999, 0.9999)
+        print(rho)
 
         return vbinorm(p, q, rho)
 

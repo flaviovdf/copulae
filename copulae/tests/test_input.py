@@ -2,12 +2,19 @@
 '''Unit tests for input generators'''
 
 
+from copulae.closedcopulas import book220
+from copulae.closedcopulas.gauss import C as gaussC
+
+
 from copulae.input import generate_copula_net_input
 
-from copulae.utils import gauss_copula
 
-from numpy.testing import assert_, assert_almost_equal
+from numpy.testing import assert_
+from numpy.testing import assert_almost_equal
 from numpy.testing import assert_array_almost_equal
+
+
+import jax
 
 
 from statsmodels.distributions.empirical_distribution \
@@ -225,7 +232,7 @@ def test_Y_is_correct():
     # get the expected values from the copula equation
     E_batches = np.zeros(shape=(n_batches, batch_size, 1))
     for batch_i in range(n_batches):
-        Eb = gauss_copula(
+        Eb = gaussC(
             InputTensors.UV_batches[batch_i].T, mean, E
         ).reshape(batch_size, 1)
         E_batches[batch_i] = Eb
@@ -330,27 +337,18 @@ def test_closed_form_partial_large():
     partials.
     '''
     np.random.seed(30091985)
+    key = jax.random.PRNGKey(30091985)
+    _, sub = jax.random.split(key)
+    del key
+    D = book220.sample(sub, 1000, True)
 
-    us = np.random.uniform(0, 1, size=(1000, ))
-    ts = np.random.uniform(0, 1, size=(1000, ))
-    vs = us * np.sqrt(ts) / (1 - (1 - us) * np.sqrt(ts))
-
-    # from the book this is a valid dataset copulated by
-    # the copula in the docstring
-    d0 = 2 * us - 1
-    d1 = -np.log(1 - vs)
-
-    D = np.array([d0, d1])
     InputTensors = generate_copula_net_input(
         D, bootstrap=False
     )
 
-    def C(u, v):
-        return u * v / (u + v - u * v)
-
     UV = InputTensors.UV_batches[0]
 
-    Y_expected = C(UV[0], UV[1]).ravel()
+    Y_expected = book220.C(UV[0], UV[1]).ravel()
     Y_emp = InputTensors.YC_batches.ravel()
 
     assert_array_almost_equal(Y_expected, Y_emp, 1e-5)
@@ -359,11 +357,8 @@ def test_closed_form_partial_large():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def dC(v, u):  # P[U <= v | U = u]
-        return (v / (u + v - u * v)) ** 2
-
-    dC_expected_vu = dC(UV[1], UV[0]).ravel()
-    dC_expected_uv = dC(UV[0], UV[1]).ravel()
+    dC_expected_vu = book220.dCdu(UV[0], UV[1]).ravel()
+    dC_expected_uv = book220.dCdv(UV[0], UV[1]).ravel()
 
     dC_emp_uv = InputTensors.YdC_batches[:, 0, :].ravel()
     dC_emp_vu = InputTensors.YdC_batches[:, 1, :].ravel()
@@ -382,25 +377,18 @@ def test_closed_form_partial_small():
     # easier to follow small arrays
 
     np.random.seed(30091985)
+    key = jax.random.PRNGKey(30091985)
+    _, sub = jax.random.split(key)
+    del key
+    D = book220.sample(sub, 100, True)
 
-    us = np.random.uniform(0, 1, size=(100, ))
-    ts = np.random.uniform(0, 1, size=(100, ))
-    vs = us * np.sqrt(ts) / (1 - (1 - us) * np.sqrt(ts))
-
-    d0 = 2 * us - 1
-    d1 = -np.log(1 - vs)
-
-    D = np.array([d0, d1])
     InputTensors = generate_copula_net_input(
         D, bootstrap=False
     )
 
-    def C(u, v):
-        return u * v / (u + v - u * v)
-
     UV = InputTensors.UV_batches[0]
 
-    Y_expected = C(UV[0], UV[1]).ravel()
+    Y_expected = book220.C(UV[0], UV[1]).ravel()
     Y_emp = InputTensors.YC_batches.ravel()
 
     assert_array_almost_equal(Y_expected, Y_emp, 1e-5)
@@ -409,11 +397,8 @@ def test_closed_form_partial_small():
     assert_almost_equal(1.0, r, 1e-5)
     assert_almost_equal(0.0, p, 1e-5)
 
-    def dC(v, u):  # P[V <= v | U = u]
-        return (v / (u + v - u * v)) ** 2
-
-    dC_expected_vu = dC(UV[1], UV[0]).ravel()
-    dC_expected_uv = dC(UV[0], UV[1]).ravel()
+    dC_expected_vu = book220.dCdu(UV[0], UV[1]).ravel()
+    dC_expected_uv = book220.dCdv(UV[0], UV[1]).ravel()
 
     dC_emp_uv = InputTensors.YdC_batches[:, 0, :].ravel()
     dC_emp_vu = InputTensors.YdC_batches[:, 1, :].ravel()

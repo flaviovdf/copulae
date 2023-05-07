@@ -1,13 +1,18 @@
 # -*- coding: utf8 -*-
-'''Small utilities with no other home'''
-
+'''
+Evaluates a Gaussian Copula (C, capital C) at the given
+points `u`. This module is able to evalue gaussian
+copulas or arbitrary dimensions. However, given that
+it employs regular scipy (not jax), it is not grad
+nor jit friendly.
+'''
 
 from copulae.typing import Tensor
 
 import scipy.stats as ss
 
 
-def gauss_copula(
+def C(
     u: Tensor,
     mean: Tensor,
     cov: Tensor
