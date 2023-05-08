@@ -3,7 +3,8 @@
 
 
 from copulae.training.cflax.mono_aux import cumtrapz
-from copulae.training.cflax.mono_aux import integrate_and_set
+from copulae.training.cflax.mono_aux import \
+    integrate_and_set
 
 
 from numpy.testing import assert_array_almost_equal
