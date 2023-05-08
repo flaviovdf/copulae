@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 
 
-from copulae.training.cflax.mono_aux import ELUPlusOne
+from copulae.training.cflax.mono_aux import PositiveLayer
 from copulae.training.cflax.mono_aux import \
     integrate_and_set
 
@@ -90,8 +90,8 @@ class FlexibleBi(nn.Module):
 
 
 class SiamesePositiveBiLogitCopula(nn.Module):
-    left: ELUPlusOne
-    right: ELUPlusOne
+    left: PositiveLayer
+    right: PositiveLayer
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
@@ -101,7 +101,7 @@ class SiamesePositiveBiLogitCopula(nn.Module):
 
 
 class PositiveBiLogitCopula(nn.Module):
-    base: ELUPlusOne
+    base: PositiveLayer
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:

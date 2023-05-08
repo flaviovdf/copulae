@@ -2,7 +2,7 @@
 # noqa: E501
 
 
-from copulae.training.cflax.mono_aux import ELUPlusOne
+from copulae.training.cflax.mono_aux import PositiveLayer
 from copulae.training.cflax.mono_aux import \
     integrate_and_set
 
@@ -199,8 +199,8 @@ class NormalBi(nn.Module):
 
 
 class SiamesePositiveBiNormalCopula(nn.Module):
-    left: ELUPlusOne
-    right: ELUPlusOne
+    left: PositiveLayer
+    right: PositiveLayer
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
@@ -210,7 +210,7 @@ class SiamesePositiveBiNormalCopula(nn.Module):
 
 
 class PositiveBiNormalCopula(nn.Module):
-    base: ELUPlusOne
+    base: PositiveLayer
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:

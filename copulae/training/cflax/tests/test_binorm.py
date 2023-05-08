@@ -7,7 +7,8 @@ from copulae.closedcopulas import book220
 
 from copulae.input import generate_copula_net_input
 
-from copulae.training.cflax.mono_aux import ELUPlusOne
+from copulae.training.cflax.mono_aux import PositiveLayer
+from copulae.training.cflax.mono_aux import EluPOne
 from copulae.training.cflax.binorm import \
     (PositiveBiNormalCopula, SiamesePositiveBiNormalCopula)
 from copulae.training.cflax.binorm import binorm
@@ -40,7 +41,10 @@ def test_pbnc():
 
     net_def = [200, 200, 200, 200, 200]
     model = PositiveBiNormalCopula(
-        ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     UV = TrainingTensors.UV_batches[0]
@@ -73,7 +77,14 @@ def test_spbnc():
 
     net_def = [200, 200, 200, 200, 200]
     model = SiamesePositiveBiNormalCopula(
-        ELUPlusOne(net_def), ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        ),
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     UV = TrainingTensors.UV_batches[0]
@@ -106,7 +117,10 @@ def test_lots_of_derivatives_pbnc():
 
     net_def = [int(x) for x in jnp.ones(16) * 16]
     model = PositiveBiNormalCopula(
-        ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     losses = [
@@ -156,7 +170,14 @@ def test_lots_of_derivatives_spbnc():
 
     net_def = [int(x) for x in jnp.ones(16) * 16]
     model = SiamesePositiveBiNormalCopula(
-        ELUPlusOne(net_def), ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        ),
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     losses = [

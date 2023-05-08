@@ -32,14 +32,68 @@ def integrate_and_set(u: Tensor, z: Tensor) -> Tensor:
     return ct[reverse_idx]
 
 
-class ELUPlusOne(nn.Module):
+class ResELUPlusOne(nn.Module):
     layers: Sequence[int]
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
         a = jnp.clip(U.T, 0, 1)
-        for layer_width in self.layers:
+        z = nn.Dense(self.layers[0])(a)
+        a = nn.elu(z) + 1
+
+        for layer_width in self.layers[1:]:
             z = nn.Dense(layer_width)(a)
-            a = nn.elu(z) + 1
+            a = nn.elu(z) + 1 + a
+
         z = nn.Dense(1)(a)
+        return nn.elu(z) + 1 + a
+
+
+class EluPOne(nn.Module):
+    @nn.compact
+    def __call__(self, z: Tensor, _: Tensor) -> Tensor:
         return nn.elu(z) + 1
+
+
+class ResEluPOne(nn.Module):
+    @nn.compact
+    def __call__(self, z: Tensor, x: Tensor) -> Tensor:
+        return nn.elu(z) + 1 + x
+
+
+class SoftPlus(nn.Module):
+    @nn.compact
+    def __call__(self, z: Tensor, _: Tensor) -> Tensor:
+        return nn.softplus(z)
+
+
+class ResSoftPlus(nn.Module):
+    @nn.compact
+    def __call__(self, z: Tensor, x: Tensor) -> Tensor:
+        return nn.softplus(z) + x
+
+
+class Identity(nn.Module):
+    @nn.compact
+    def __call__(self, z: Tensor, _: Tensor) -> Tensor:
+        return z
+
+
+class PositiveLayer(nn.Module):
+    layers: Sequence[int]
+    ini: EluPOne | SoftPlus | Identity
+    mid: EluPOne | SoftPlus | ResELUPlusOne | ResSoftPlus
+    end: EluPOne | SoftPlus | ResELUPlusOne | ResSoftPlus
+
+    @nn.compact
+    def __call__(self, U: Tensor) -> Tensor:
+        a = jnp.clip(U.T, 0, 1)
+        z = nn.Dense(self.layers[0])(a)
+        a = self.ini()(z, a)
+
+        for layer_width in self.layers[1:]:
+            z = nn.Dense(layer_width)(a)
+            a = self.mid()(z, a)
+
+        z = nn.Dense(1)(a)
+        return self.end()(z, a)

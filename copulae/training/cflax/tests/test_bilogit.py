@@ -7,7 +7,8 @@ from copulae.closedcopulas import book220
 
 from copulae.input import generate_copula_net_input
 
-from copulae.training.cflax.mono_aux import ELUPlusOne
+from copulae.training.cflax.mono_aux import PositiveLayer
+from copulae.training.cflax.mono_aux import EluPOne
 from copulae.training.cflax.bilogit import \
     (PositiveBiLogitCopula, SiamesePositiveBiLogitCopula)
 
@@ -37,7 +38,10 @@ def test_pblc():
 
     net_def = [200, 200, 200, 200, 200]
     model = PositiveBiLogitCopula(
-        ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     _, subkey = jax.random.split(key)
@@ -70,7 +74,14 @@ def test_spblc():
 
     net_def = [200, 200, 200, 200, 200]
     model = SiamesePositiveBiLogitCopula(
-        ELUPlusOne(net_def), ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        ),
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     _, subkey = jax.random.split(key)
@@ -103,7 +114,10 @@ def test_lots_of_derivatives_pblc():
 
     net_def = [int(x) for x in jnp.ones(16) * 16]
     model = PositiveBiLogitCopula(
-        ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     losses = [
@@ -151,7 +165,14 @@ def test_lots_of_derivatives_spblc():
 
     net_def = [int(x) for x in jnp.ones(16) * 16]
     model = SiamesePositiveBiLogitCopula(
-        ELUPlusOne(net_def), ELUPlusOne(net_def)
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        ),
+        PositiveLayer(
+            net_def,
+            EluPOne, EluPOne, EluPOne
+        )
     )
 
     losses = [
