@@ -172,7 +172,7 @@ def test_closed_form_density():
     theta = 0.5
 
     U = U.at[0, 0, 0].set(u)
-    U = U.at[0, 0, 1].set(u)
+    U = U.at[0, 1, 0].set(v)
 
     params = [jnp.array([theta])]
 
@@ -182,7 +182,7 @@ def test_closed_form_density():
     )
 
 
-def test_closed_form_density():
+def test_closed_form_density_2():
     '''
     Copulas of the form (FGM copulas):
 
