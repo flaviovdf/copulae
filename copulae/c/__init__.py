@@ -20,6 +20,7 @@ CopulaType = Callable[[PyTree, Tensor, Tensor], Tensor]
 
 def create_copula(
     forward_fun: CopulaType,
+    use_third_deriv: bool = False
 ) -> Tuple[CopulaType, CopulaType, CopulaType]:
     '''
     This is the main method responsible for creating
@@ -113,4 +114,38 @@ def create_copula(
         out_axes=0
     )
 
-    return (batched_C, batched_partial_c, batched_c)
+    @jax.jit
+    def c_prime(
+        params: PyTree,
+        U: Tensor
+    ) -> Tensor:
+        def j(params, u):
+            u = jnp.atleast_2d(u).T
+            jacobian = jax.jacobian(
+                c, argnums=1
+            )(
+                params, u
+            ).squeeze()
+            return jacobian
+        aux = jnp.swapaxes(
+            jax.vmap(j, in_axes=(None, 1))(
+                params, U
+            ),
+            -2, -1
+        )
+        rv = jnp.zeros_like(aux)
+        rv = rv.at[0].set(aux[1])
+        rv = rv.at[1].set(aux[0])
+        return rv[:, 0]
+
+    batched_c_prime = jax.vmap(
+        c_prime,
+        in_axes=(None, 0),
+        out_axes=0
+    )
+
+    if use_third_deriv:
+        return (batched_C, batched_partial_c, batched_c,
+                batched_c_prime)
+    else:
+        return (batched_C, batched_partial_c, batched_c)

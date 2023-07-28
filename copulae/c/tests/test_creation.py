@@ -5,6 +5,7 @@
 from copulae.c import create_copula
 
 from numpy.testing import assert_
+from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_almost_equal
 from numpy.testing import assert_equal
 
@@ -222,4 +223,40 @@ def test_closed_form_density_2():
     assert_almost_equal(
         density(params, U)[0, 1],
         1 - 0.8 * (1 - 2 * 0.5) * (1 - 2 * 0.5)
+    )
+
+
+def test_third_deriv():
+    '''
+    c_u'(v) = 2t * (2v - 1)
+    c_v'(u) = 2t * (2u - 1)
+    '''
+    @jax.jit
+    def forward_fun(theta, U):
+        theta = theta[0][0]
+        u = U[0]
+        v = U[1]
+        return u * v + theta * u * v * (1 - u) * (1 - v)
+
+    _, _, _, c_prime = create_copula(forward_fun, True)
+
+    U = jnp.zeros(shape=(1, 2, 2), dtype=jnp.float32)
+
+    u = 0.6
+    v = 0.2
+    theta = 0.5
+
+    U = U.at[0, 0, 0].set(u)
+    U = U.at[0, 1, 0].set(v)
+
+    '''
+    c_u'(v) = 2t * (2v - 1)
+    c_v'(u) = 2t * (2u - 1)
+    '''
+
+    params = [jnp.array([theta])]
+
+    assert_array_almost_equal(
+        [0.2, -0.6],
+        c_prime(params, U)[0]
     )
