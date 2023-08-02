@@ -59,7 +59,7 @@ CopulaTrainingState = namedtuple(
 )
 
 
-def rescale(UV_batches):
+def rescale_for_training(UV_batches):
     UV_scaled = jnp.zeros_like(UV_batches)
     for batch in UV_batches.shape[0]:
         n = UV_batches[batch].shape[1]
@@ -67,7 +67,7 @@ def rescale(UV_batches):
         UV_scaled = UV_scaled.at[batch].set(
             UV_batches[batch] * s
         )
-    return UV_scaled
+    return jnp.clip(UV_scaled, 1e-6)
 
 
 def setup_training(
@@ -79,7 +79,9 @@ def setup_training(
 ):
 
     if rescale:
-        UV_batches = rescale(TrainingTensors.UV_batches)
+        UV_batches = rescale_for_training(
+            TrainingTensors.UV_batches
+        )
     else:
         UV_batches = TrainingTensors.UV_batches
     M_batches = TrainingTensors.M_batches
