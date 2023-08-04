@@ -14,7 +14,6 @@ from typing import Union
 from jax import Array as JaxArray
 
 
-import jax.numpy as jnp
 import numpy as np
 import numpy.typing as npt
 
@@ -24,8 +23,7 @@ PRNGKey = Any
 Shape = Tuple[int, ...]
 ShapeLike = Union[int, Sequence[int]]
 
-Tensor = Union[jnp.ndarray, jnp.DeviceArray, np.ndarray,
-               JaxArray, npt.NDArray[Any]]
+Tensor = Union[np.ndarray, JaxArray, npt.NDArray[Any]]
 
 PyTree = Union[Tensor, Tuple["PyTree", ...],
                Sequence["PyTree"], Dict[Hashable, "PyTree"]
