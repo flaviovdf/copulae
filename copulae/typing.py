@@ -23,7 +23,9 @@ PRNGKey = Any
 Shape = Tuple[int, ...]
 ShapeLike = Union[int, Sequence[int]]
 
-Tensor = Union[np.ndarray, JaxArray, npt.NDArray[Any]]
+Tensor = Union[
+    np.ndarray, JaxArray, npt.NDArray[Any]
+]
 
 PyTree = Union[Tensor, Tuple["PyTree", ...],
                Sequence["PyTree"], Dict[Hashable, "PyTree"]
