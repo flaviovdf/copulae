@@ -23,7 +23,7 @@ class LogitPDFNet(nn.Module):
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
-        a = jnp.clip(U, 0, 1)
+        a = jnp.clip(U.T, 0, 1)
 
         z = nn.Dense(self.layers[0])(a)
         a = nn.relu(z)
@@ -42,7 +42,7 @@ class NormalPDFNet(nn.Module):
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
-        a = jnp.clip(U, 0, 1)
+        a = jnp.clip(U.T, 0, 1)
 
         z = nn.Dense(self.layers[0])(a)
         a = nn.relu(z)
