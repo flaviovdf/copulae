@@ -16,6 +16,7 @@ import jax.numpy as jnp
 import jax.scipy.stats as jss
 import jax
 
+
 @jax.jit
 def erfp(x: Tensor) -> Tensor:
     return (erf(x) + 1) / 2
@@ -25,17 +26,17 @@ def erfp(x: Tensor) -> Tensor:
 def erfp_integral(x: Tensor) -> Tensor:
     return 0.5 * (x * erf(x) + (((-x) ** 2) / jnp.pi) + x)
 
+
 class TwoCats(nn.Module):
     base: MLP
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
         z = erfp(self.base(U).ravel())
-        s = erfp_integral(1)
+        max_ = self.base(jnp.ones((2, 1))).ravel()[0]
+        s = erfp_integral(max_)
 
         t_0 = (erfp_integral(z) * U[0]) / s
         t_1 = (erfp_integral(z) * U[1]) / s
-        x0 = jss.norm.ppf(t_0)
-        x1 = jss.norm.ppf(t_1)
 
         return NormalBi()(t_0, t_1)
