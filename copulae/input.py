@@ -139,7 +139,7 @@ def __populate(
             ).T <= vals_x
             mask = mask & lt
 
-        Yb = mask.mean(axis=0)
+        Yb = np.mean(mask, axis=0)
         Yb = Yb.reshape(batch_size, 1)
 
         UV_batches[batch_i, :, :] = Ub

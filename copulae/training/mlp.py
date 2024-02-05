@@ -93,7 +93,7 @@ def init_mlp(
 def mlp(
     params: PyTree,
     U: Tensor,
-    Or: Tensor = None
+    Or: Tensor | None = None
 ) -> Tensor:
     '''
     Feed-forward for a simple multi-layer neural network.

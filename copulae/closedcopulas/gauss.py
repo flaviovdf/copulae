@@ -16,7 +16,7 @@ from copulae.typing import Tensor
 import flax.linen as nn
 
 
-import jax.scipy as jss
+import jax.scipy.stats as jss
 import jax.scipy.special as jspecial
 import jax.numpy as jnp
 

@@ -15,7 +15,7 @@ import jax.numpy as jnp
 
 
 @jax.jit
-def scotts_method(n: int, d: int) -> float:
+def scotts_method(n: int, d: int) -> Tensor:
     '''
     Bandwidth estimator based on number of data points (n)
     and dimensions (d).
@@ -24,7 +24,7 @@ def scotts_method(n: int, d: int) -> float:
 
 
 @jax.jit
-def silvermans_method(n: int, d: int) -> float:
+def silvermans_method(n: int, d: int) -> Tensor:
     '''
     Bandwidth estimator based on number of data points (n)
     and dimensions (d).

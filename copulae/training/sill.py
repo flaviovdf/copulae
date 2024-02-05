@@ -141,7 +141,7 @@ def sill_neuron(
 def sill_net(
     params: PyTree,
     U: Tensor,
-    Or: Tensor = None
+    Or: Tensor | None = None
 ) -> Tensor:
     '''
     Feed-forward for a simple multi-layer sill network.
