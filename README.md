@@ -1,2 +1,3 @@
-# copulae
-Code for training non-parametric copula networks
+# 2-Cats
+
+Code for the ``2d Copula Approximating Transforms''. 2-Cats.
