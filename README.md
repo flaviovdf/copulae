@@ -13,8 +13,9 @@ marginals are copulated using any Bivariate Cumulative Probability Distribution.
 # Using the Model
 
 ```python
-
 from copulae.input import generate_copula_net_input
+
+from copulae.training.cflax.mono_aux import EluPOne
 
 from copulae.training.cflax.two_cats import FlexibleBi
 from copulae.training.cflax.two_cats import NormalBi
@@ -27,8 +28,13 @@ from copulae.training import setup_training
 from copulae.training.loss import copula_likelihood
 from copulae.training.loss import sq_error
 from copulae.training.loss import sq_error_partial
+     
+from tdqm import tdqm
 
-import tdqm
+import jax
+import jax.numpy as jnp
+import numpy as np
+import optax
 
 D = # some 2d dataset with dimensions on columns (2, n) shape. Transpose a (n, 2) data.
 TrainingTensors = generate_copula_net_input(
