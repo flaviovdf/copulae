@@ -109,8 +109,7 @@ class TwoCatsTesting(nn.Module):
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
         z = erfp(self.base(U).ravel())
-        max_ = self.base(jnp.ones((2, 1))).ravel()[0]
-        s = erfp_integral(max_)
+        s = erfp_integral(1.0)
 
         z0 = (erfp_integral(z) * U[0]) / s
         z1 = (erfp_integral(z) * U[1]) / s

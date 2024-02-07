@@ -94,45 +94,10 @@ class SiamesePositiveBiLogitCopula(nn.Module):
     right: PositiveLayer
 
     @nn.compact
-    def __call__(self, U: Tensor, train: bool) -> Tensor:
-        def trapz_zero(
-            u0: float, u1: float, nd: int = 200
-        ) -> float:
-            u0_aux = jnp.linspace(0, u0, nd)
-            u1_aux = jnp.ones(nd) * u1
-            U_aux = jnp.stack((u0_aux, u1_aux))
-            z0 = integrate_and_set(
-                U_aux[0], self.left(U_aux).ravel()
-            )
-            return z0[-1]
-
-        def trapz_one(
-            u0: float, u1: float, nd: int = 200
-        ) -> float:
-            u1_aux = jnp.linspace(0, u1, nd)
-            u0_aux = jnp.ones(nd) * u0
-            U_aux = jnp.stack((u0_aux, u1_aux))
-            z1 = integrate_and_set(
-                U_aux[1], self.left(U_aux).ravel()
-            )
-            return z1[-1]
-
-        if train:
-            z0 = integrate_and_set(
-                U[0], self.left(U).ravel()
-            )
-            z1 = integrate_and_set(
-                U[1], self.right(U).ravel()
-            )
-            return FlexibleBi()(z0, z1)
-        else:
-            z0 = jax.vmap(trapz_zero, in_axes=(0, 0))(
-                U[0], U[1]
-            )
-            z1 = jax.vmap(trapz_one, in_axes=(0, 0))(
-                U[0], U[1]
-            )
-            return FlexibleBi()(z0, z1)
+    def __call__(self, U: Tensor) -> Tensor:
+        z0 = integrate_and_set(U[0], self.left(U).ravel())
+        z1 = integrate_and_set(U[1], self.right(U).ravel())
+        return FlexibleBi()(z0, z1)
 
 
 class PositiveBiLogitCopula(nn.Module):
