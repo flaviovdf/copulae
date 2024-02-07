@@ -51,7 +51,6 @@ losses = [
 
 # The Model
 layer_widths = [128, 64, 32, 16]
-layer_widths = [128, 64, 32, 16]
 model = TwoCats(         # the 2-Cats models
     [                    # Will perform a sequence of monotonic transforms, usually one
         TransformLayer(
