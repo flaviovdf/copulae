@@ -9,6 +9,7 @@ from copulae.training.cflax.mono_aux import cumtrapz
 
 from copulae.training.cflax.mlp import MLP
 
+from copulae.typing import Sequence
 from copulae.typing import Tensor
 
 
@@ -31,9 +32,8 @@ def erfp_integral(x: Tensor) -> Tensor:
     return 0.5 * (x * erf(x) + (((-x) ** 2) / jnp.pi) + x)
 
 
-class TwoCats(nn.Module):
+class TransformLayer(nn.Module):
     base: PositiveLayer
-    end: NormalBi | FlexibleBi
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
@@ -81,6 +81,21 @@ class TwoCats(nn.Module):
             U[0], U[1]
         )
         z1 = jnp.clip(z1, 1e-6, 1 - 1e-6)
+        return jnp.stack((z0, z1))
+
+
+class TwoCats(nn.Module):
+    base: Sequence[TransformLayer]
+    end: NormalBi | FlexibleBi
+
+    @nn.compact
+    def __call__(self, U: Tensor) -> Tensor:
+        Z = U
+        for pl in self.base:
+            Z = pl(U)
+
+        z0 = Z[0]
+        z1 = Z[1]
 
         x0 = jnp.log(z0 / (1 - z0))
         x1 = jnp.log(z1 / (1 - z1))
@@ -88,7 +103,7 @@ class TwoCats(nn.Module):
         return self.end(x0, x1)
 
 
-class TwoCatsSimple(nn.Module):
+class TwoCatsTesting(nn.Module):
     base: MLP
 
     @nn.compact
@@ -97,7 +112,10 @@ class TwoCatsSimple(nn.Module):
         max_ = self.base(jnp.ones((2, 1))).ravel()[0]
         s = erfp_integral(max_)
 
-        t_0 = (erfp_integral(z) * U[0]) / s
-        t_1 = (erfp_integral(z) * U[1]) / s
+        z0 = (erfp_integral(z) * U[0]) / s
+        z1 = (erfp_integral(z) * U[1]) / s
 
-        return NormalBi()(t_0, t_1)
+        x0 = jnp.log(z0 / (1 - z0))
+        x1 = jnp.log(z1 / (1 - z1))
+
+        return NormalBi()(x0, x1)
