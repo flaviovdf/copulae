@@ -12,6 +12,9 @@ marginals are copulated using any Bivariate Cumulative Probability Distribution.
 
 # Using the Model
 
+See the notebooks [Example](./Example.ipynb) and [Example on Boston Dataset](./ExampleOnDataset.ipynb). 
+Also, the code snippet below.
+
 ```python
 from copulae.input import generate_copula_net_input
 
