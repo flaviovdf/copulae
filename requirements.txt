@@ -2,6 +2,7 @@ coverage
 flax
 flake8
 jax
+matplotlib
 numpy
 optax
 pytest
