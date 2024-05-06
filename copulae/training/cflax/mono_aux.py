@@ -1,9 +1,14 @@
 # -*- coding: utf8
 
 
-from copulae.typing import Tensor
-from copulae.typing import Sequence
+from copulae.training.cflax.positive_linear import (
+    PositiveDense
+)
 
+from copulae.typing import (
+    Sequence,
+    Tensor
+)
 
 import flax.linen as nn
 
@@ -80,6 +85,7 @@ class Identity(nn.Module):
 
 
 class PositiveLayer(nn.Module):
+    dense: nn.Dense | PositiveDense
     layers: Sequence[int]
     ini: EluPOne | SoftPlus | Identity
     mid: EluPOne | SoftPlus | ResELUPlusOne | ResSoftPlus
@@ -88,12 +94,12 @@ class PositiveLayer(nn.Module):
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
         a = jnp.clip(U.T, 0, 1)
-        z = nn.Dense(self.layers[0])(a)
+        z = self.dense(self.layers[0])(a)
         a = self.ini()(z, a)
 
         for layer_width in self.layers[1:]:
-            z = nn.Dense(layer_width)(a)
+            z = self.dense(layer_width)(a)
             a = self.mid()(z, a)
 
-        z = nn.Dense(1)(a)
+        z = self.dense(1)(a)
         return self.end()(z, a)

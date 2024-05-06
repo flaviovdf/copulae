@@ -7,7 +7,10 @@ from copulae.training.cflax.bilogit import FlexibleBi
 from copulae.training.cflax.mono_aux import PositiveLayer
 from copulae.training.cflax.mono_aux import cumtrapz
 
-from copulae.training.cflax.mlp import MLP
+from copulae.training.cflax.mlp import (
+    MLP,
+    PositiveMLP
+)
 
 from copulae.typing import Sequence
 from copulae.typing import Tensor
@@ -104,7 +107,7 @@ class TwoCats(nn.Module):
 
 
 class TwoCatsTesting(nn.Module):
-    base: MLP
+    base: MLP | PositiveMLP
 
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
