@@ -85,7 +85,7 @@ class Identity(nn.Module):
 
 
 class PositiveLayer(nn.Module):
-    dense: nn.Dense | PositiveDense
+    # dense: nn.Dense | PositiveDense
     layers: Sequence[int]
     ini: EluPOne | SoftPlus | Identity
     mid: EluPOne | SoftPlus | ResELUPlusOne | ResSoftPlus
@@ -94,12 +94,12 @@ class PositiveLayer(nn.Module):
     @nn.compact
     def __call__(self, U: Tensor) -> Tensor:
         a = jnp.clip(U.T, 0, 1)
-        z = self.dense(self.layers[0])(a)
+        z = nn.Dense(self.layers[0])(a)
         a = self.ini()(z, a)
 
         for layer_width in self.layers[1:]:
-            z = self.dense(layer_width)(a)
+            z = nn.Dense(layer_width)(a)
             a = self.mid()(z, a)
 
-        z = self.dense(1)(a)
+        z = nn.Dense(1)(a)
         return self.end()(z, a)
