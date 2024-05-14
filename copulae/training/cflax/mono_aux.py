@@ -1,9 +1,9 @@
 # -*- coding: utf8
 
 
-from copulae.training.cflax.positive_linear import (
-    PositiveDense
-)
+# from copulae.training.cflax.positive_linear import (
+#     PositiveDense
+# )
 
 from copulae.typing import (
     Sequence,
