@@ -48,12 +48,12 @@ class FlexibleBi(nn.Module):
 
         s0 = self.param(
             's0',
-            jax.nn.initializers.constant(1.0),
+            jax.nn.initializers.constant(0.0),
             (1, 1)
         )
         s1 = self.param(
             's1',
-            jax.nn.initializers.constant(1.0),
+            jax.nn.initializers.constant(0.0),
             (1, 1)
         )
 
@@ -64,7 +64,7 @@ class FlexibleBi(nn.Module):
         )
         theta = self.param(
             'theta',
-            jax.nn.initializers.constant(1.0),
+            jax.nn.initializers.constant(0.0),
             (1, 1)
         )
 
@@ -82,8 +82,8 @@ class FlexibleBi(nn.Module):
         theta = jnp.clip(theta, 0, upper_theta)
 
         # deviations are always positive
-        s0 = jnp.sqrt(s0 * s0)
-        s1 = jnp.sqrt(s1 * s1)
+        s0 = jnp.sqrt(s0 * s0) + 1e-6
+        s1 = jnp.sqrt(s1 * s1) + 1e-6
         return flexible_bi(
             z0, z1, m0, m1, s0, s1, a, theta
         )
