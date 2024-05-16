@@ -172,12 +172,12 @@ class NormalBi(nn.Module):
 
         s0 = self.param(
             's0',
-            jax.nn.initializers.constant(0.0),
+            jax.nn.initializers.constant(1.0),
             (1, 1)
         )[0, 0]
         s1 = self.param(
             's1',
-            jax.nn.initializers.constant(0.0),
+            jax.nn.initializers.constant(1.0),
             (1, 1)
         )[0, 0]
 
