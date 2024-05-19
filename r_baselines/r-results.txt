@@ -1,3 +1,16 @@
+boston
+par -0.16 \pm 0.10
+bern -0.09 \pm 0.07
+T -0.17 \pm 0.09
+TLL1 -0.18 \pm 0.10
+TLL2 -0.19 \pm 0.10
+TLL2nn -0.16 \pm 0.10
+MR -0.07 \pm 0.07
+beta -0.11 \pm 0.07
+pbern -0.11 \pm 0.08
+pspl1 -0.13 \pm 0.10
+pspl2 -0.13 \pm 0.09
+
 clayton1
 par 2.65 \pm 0.09
 bern 2.66 \pm 0.08
@@ -12,7 +25,7 @@ pspl1 2.67 \pm 0.09
 pspl2 2.67 \pm 0.09
 
 clayton10
-par 1.39 \pm 0.11
+par 1.39 \pm 0.10
 bern 1.76 \pm 0.08
 T 1.46 \pm 0.09
 TLL1 1.43 \pm 0.10
@@ -21,20 +34,20 @@ TLL2nn 1.42 \pm 0.10
 MR 1.54 \pm 0.11
 beta 1.50 \pm 0.10
 pbern 1.92 \pm 0.08
-pspl1 1.61 \pm 0.14
+pspl1 1.61 \pm 0.13
 pspl2 1.62 \pm 0.10
 
 clayton5
 par 1.89 \pm 0.11
 bern 2.06 \pm 0.09
 T 2.00 \pm 0.21
-TLL1 1.98 \pm 0.20
-TLL2 2.03 \pm 0.26
+TLL1 1.98 \pm 0.21
+TLL2 2.03 \pm 0.25
 TLL2nn 1.93 \pm 0.11
 MR 2.01 \pm 0.11
-beta 2.05 \pm 0.21
+beta 2.05 \pm 0.20
 pbern 2.12 \pm 0.10
-pspl1 2.14 \pm 0.17
+pspl1 2.14 \pm 0.18
 pspl2 2.02 \pm 0.11
 
 frank1
@@ -54,7 +67,7 @@ frank10
 par 2.10 \pm 0.09
 bern 2.15 \pm 0.08
 T 2.12 \pm 0.09
-TLL1 2.17 \pm 0.21
+TLL1 2.17 \pm 0.20
 TLL2 2.11 \pm 0.09
 TLL2nn 2.12 \pm 0.09
 MR 2.11 \pm 0.08
@@ -106,12 +119,38 @@ gauss9
 par 2.09 \pm 0.09
 bern 2.15 \pm 0.09
 T 2.09 \pm 0.09
-TLL1 2.09 \pm 0.10
+TLL1 2.09 \pm 0.09
 TLL2 2.08 \pm 0.09
-TLL2nn 2.09 \pm 0.09
-MR 2.16 \pm 0.11
+TLL2nn 2.09 \pm 0.10
+MR 2.16 \pm 0.10
 beta 2.11 \pm 0.09
 pbern 2.15 \pm 0.10
 pspl1 2.15 \pm 0.11
 pspl2 2.13 \pm 0.10
+
+googfb
+par -0.88 \pm 0.08
+bern -0.70 \pm 0.04
+T -1.00 \pm 0.07
+TLL1 -1.00 \pm 0.09
+TLL2 -0.27 \pm 0.59
+TLL2nn -0.81 \pm 0.39
+MR -0.85 \pm 0.08
+beta -0.92 \pm 0.07
+pbern -0.62 \pm 0.04
+pspl1 -0.77 \pm 0.15
+pspl2 -0.83 \pm 0.07
+
+intcmsft
+par -0.05 \pm 0.07
+bern -0.03 \pm 0.05
+T -0.06 \pm 0.06
+TLL1 -0.06 \pm 0.07
+TLL2 -0.06 \pm 0.07
+TLL2nn -0.04 \pm 0.07
+MR -0.01 \pm 0.06
+beta -0.03 \pm 0.06
+pbern -0.02 \pm 0.07
+pspl1 -0.02 \pm 0.07
+pspl2 -0.02 \pm 0.07
 
