@@ -1,6 +1,3 @@
-
-rm(list = ls())
-
 library('kdecopula')
 
 baselines <- c('bern', 'T', 'TLL1', 'TLL2', 'TLL2nn', 'MR', 'beta')
