@@ -1,0 +1,117 @@
+clayton1
+par 2.65 \pm 0.09
+bern 2.66 \pm 0.08
+T 2.65 \pm 0.08
+TLL1 2.65 \pm 0.09
+TLL2 2.65 \pm 0.09
+TLL2nn 2.65 \pm 0.09
+MR 2.68 \pm 0.08
+beta 2.66 \pm 0.08
+pbern 2.67 \pm 0.09
+pspl1 2.67 \pm 0.09
+pspl2 2.67 \pm 0.09
+
+clayton10
+par 1.39 \pm 0.11
+bern 1.76 \pm 0.08
+T 1.46 \pm 0.09
+TLL1 1.43 \pm 0.10
+TLL2 1.41 \pm 0.10
+TLL2nn 1.42 \pm 0.10
+MR 1.54 \pm 0.11
+beta 1.50 \pm 0.10
+pbern 1.92 \pm 0.08
+pspl1 1.61 \pm 0.14
+pspl2 1.62 \pm 0.10
+
+clayton5
+par 1.89 \pm 0.11
+bern 2.06 \pm 0.09
+T 2.00 \pm 0.21
+TLL1 1.98 \pm 0.20
+TLL2 2.03 \pm 0.26
+TLL2nn 1.93 \pm 0.11
+MR 2.01 \pm 0.11
+beta 2.05 \pm 0.21
+pbern 2.12 \pm 0.10
+pspl1 2.14 \pm 0.17
+pspl2 2.02 \pm 0.11
+
+frank1
+par 2.78 \pm 0.08
+bern 2.78 \pm 0.08
+T 2.79 \pm 0.08
+TLL1 2.79 \pm 0.08
+TLL2 2.79 \pm 0.09
+TLL2nn 2.78 \pm 0.08
+MR 2.79 \pm 0.08
+beta 2.78 \pm 0.08
+pbern 2.78 \pm 0.08
+pspl1 2.78 \pm 0.08
+pspl2 2.78 \pm 0.08
+
+frank10
+par 2.10 \pm 0.09
+bern 2.15 \pm 0.08
+T 2.12 \pm 0.09
+TLL1 2.17 \pm 0.21
+TLL2 2.11 \pm 0.09
+TLL2nn 2.12 \pm 0.09
+MR 2.11 \pm 0.08
+beta 2.12 \pm 0.08
+pbern 2.13 \pm 0.08
+pspl1 2.10 \pm 0.09
+pspl2 2.11 \pm 0.09
+
+frank5
+par 2.57 \pm 0.09
+bern 2.58 \pm 0.09
+T 2.57 \pm 0.09
+TLL1 2.57 \pm 0.09
+TLL2 2.57 \pm 0.09
+TLL2nn 2.57 \pm 0.09
+MR 2.57 \pm 0.09
+beta 2.57 \pm 0.09
+pbern 2.57 \pm 0.09
+pspl1 2.57 \pm 0.09
+pspl2 2.57 \pm 0.09
+
+gauss1
+par 2.91 \pm 0.09
+bern 2.91 \pm 0.09
+T 2.92 \pm 0.09
+TLL1 2.92 \pm 0.09
+TLL2 2.91 \pm 0.09
+TLL2nn 2.91 \pm 0.09
+MR 2.91 \pm 0.09
+beta 2.91 \pm 0.09
+pbern 2.91 \pm 0.09
+pspl1 2.91 \pm 0.09
+pspl2 2.91 \pm 0.09
+
+gauss5
+par 2.69 \pm 0.09
+bern 2.69 \pm 0.09
+T 2.69 \pm 0.09
+TLL1 2.70 \pm 0.10
+TLL2 2.75 \pm 0.20
+TLL2nn 2.69 \pm 0.09
+MR 2.70 \pm 0.09
+beta 2.69 \pm 0.09
+pbern 2.69 \pm 0.09
+pspl1 2.69 \pm 0.09
+pspl2 2.69 \pm 0.09
+
+gauss9
+par 2.09 \pm 0.09
+bern 2.15 \pm 0.09
+T 2.09 \pm 0.09
+TLL1 2.09 \pm 0.10
+TLL2 2.08 \pm 0.09
+TLL2nn 2.09 \pm 0.09
+MR 2.16 \pm 0.11
+beta 2.11 \pm 0.09
+pbern 2.15 \pm 0.10
+pspl1 2.15 \pm 0.11
+pspl2 2.13 \pm 0.10
+
