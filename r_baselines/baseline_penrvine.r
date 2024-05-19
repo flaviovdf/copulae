@@ -1,6 +1,3 @@
-
-rm(list = ls())
-
 library('penRvine')
 
 bernstein <- function (v, x, n){
