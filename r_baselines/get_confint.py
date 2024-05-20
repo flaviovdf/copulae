@@ -41,8 +41,9 @@ for ds in sorted(dss):
 
         res = bootstrap((yhat, ), np.mean)
         m = np.mean(yhat)
-        ci = 0.5 * (res.confidence_interval[1] -
-                    res.confidence_interval[0])
+        u = res.confidence_interval[1]
+        l = res.confidence_interval[0]
+        ci = 0.5 * (u - l)
         cint = f'{m:.2f} \\pm {ci:.2f}'
         print(baseline, cint)
     print()
