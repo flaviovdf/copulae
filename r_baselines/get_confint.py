@@ -40,10 +40,10 @@ for ds in sorted(dss):
         yhat = -np.log(points_density)
 
         res = bootstrap((yhat, ), np.mean)
-        m = np.mean(yhat)
-        u = res.confidence_interval[1]
-        l = res.confidence_interval[0]
-        ci = 0.5 * (u - l)
-        cint = f'{m:.2f} \\pm {ci:.2f}'
+        mean = np.mean(yhat)
+        upper = res.confidence_interval[1]
+        lower = res.confidence_interval[0]
+        ci = 0.5 * (upper - lower)
+        cint = f'{mean:.2f} \\pm {ci:.2f}'
         print(baseline, cint)
     print()
