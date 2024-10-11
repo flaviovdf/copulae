@@ -11,7 +11,7 @@ from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 
 
-from scipy.integrate import cumtrapz as gt
+from scipy.integrate import cumulative_trapezoid as gt
 
 
 import jax.numpy as jnp
