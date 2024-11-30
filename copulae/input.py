@@ -102,7 +102,8 @@ def __populate(
     min_val: float,
     max_val: float,
     n_batches: int,
-    batch_size: int
+    batch_size: int,
+    conditionals: bool
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
 
     n_features = D.shape[0]
@@ -173,7 +174,8 @@ def generate_copula_net_input(
     D: Tensor,
     bootstrap: bool = True,
     n_batches: int = 128,
-    batch_size: int = 64
+    batch_size: int = 64,
+    conditionals: bool = True
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
     '''
     Creates the input tensors needed to train neural
@@ -229,7 +231,9 @@ def generate_copula_net_input(
         Number of batches to generate
     batch_size: int
         The size of each batch
-
+    conditionals: bool
+        If we should estimate conditionals, this is slow
+ 
     Returns
     -------
     Six tensors in a namedtuple. Please use
@@ -293,7 +297,7 @@ def generate_copula_net_input(
 
     rv = __populate(
         D, us, vs, bootstrap, ecdfs, 0, 1.0,
-        n_batches, batch_size
+        n_batches, batch_size, conditionals
     )
 
     import jax.numpy as jnp
