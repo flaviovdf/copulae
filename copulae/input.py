@@ -157,15 +157,18 @@ def __populate(
         __create_conditionals(us, vs)
 
     YdC_batches = np.zeros_like(UV_batches)
-    __populate_conditionals(
-        UV_batches, YdC_batches,
-        p_vu, keys_p_vu_v, keys_p_vu_u, 1, 0
-    )
-    __populate_conditionals(
-        UV_batches, YdC_batches,
-        p_uv, keys_p_uv_u, keys_p_uv_v, 0, 1
-    )
-    YdC_batches = np.clip(YdC_batches, 0, 1)
+    if conditionals:
+        __populate_conditionals(
+            UV_batches, YdC_batches,
+            p_vu, keys_p_vu_v, keys_p_vu_u, 1, 0
+        )
+        __populate_conditionals(
+            UV_batches, YdC_batches,
+            p_uv, keys_p_uv_u, keys_p_uv_v, 0, 1
+        )
+        YdC_batches = np.clip(YdC_batches, 0, 1)
+    else:
+        YdC_batches += np.nan
     return UV_batches, M_batches, X_batches, R_batches, \
         YdC_batches, YC_batches
 
