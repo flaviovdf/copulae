@@ -151,13 +151,13 @@ def __populate(
         size=UV_batches.shape
     )
 
-    p_vu, keys_p_vu_v, keys_p_vu_u = \
-        __create_conditionals(vs, us)
-    p_uv, keys_p_uv_u, keys_p_uv_v = \
-        __create_conditionals(us, vs)
-
     YdC_batches = np.zeros_like(UV_batches)
     if conditionals:
+        p_vu, keys_p_vu_v, keys_p_vu_u = \
+            __create_conditionals(vs, us)
+        p_uv, keys_p_uv_u, keys_p_uv_v = \
+            __create_conditionals(us, vs)
+
         __populate_conditionals(
             UV_batches, YdC_batches,
             p_vu, keys_p_vu_v, keys_p_vu_u, 1, 0
