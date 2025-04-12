@@ -34,7 +34,8 @@ for ds in sorted(dss):
             delimiter=','
         )
         I_pdf = np.genfromtxt(
-            'data/{}/marg_tst.csv'.format(ds)
+            'data/{}/marg_tst.csv'.format(ds),
+            delimiter=','
         )
         points_density = copula_density * I_pdf
         yhat = -np.log(points_density)

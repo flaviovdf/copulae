@@ -168,7 +168,7 @@ def __populate(
         )
         YdC_batches = np.clip(YdC_batches, 0, 1)
     else:
-        YdC_batches += np.nan
+        YdC_batches = np.nan
     return UV_batches, M_batches, X_batches, R_batches, \
         YdC_batches, YC_batches
 
