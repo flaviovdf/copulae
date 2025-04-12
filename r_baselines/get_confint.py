@@ -22,7 +22,7 @@ baselines = [
 
 
 dss = []
-for fold in glob.glob('data/*'):
+for fold in glob.glob('data/*/'):
     ds = fold.split('/')[1]
     dss.append(ds)
 
@@ -45,6 +45,7 @@ for ds in sorted(dss):
         upper = res.confidence_interval[1]
         lower = res.confidence_interval[0]
         ci = 0.5 * (upper - lower)
+        print(lower, upper)
         cint = f'{mean:.2f} \\pm {ci:.2f}'
         print(baseline, cint)
     print()
